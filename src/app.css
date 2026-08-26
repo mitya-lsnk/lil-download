@@ -1867,20 +1867,29 @@ input[type="checkbox"]:focus-visible {
 .sp-title {
   font-size: 17px;
 }
-.sp-tag {
-  font-size: 10px;
-  color: var(--muted);
-}
 .sp-row {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
-.sp-input {
-  flex: 1;
-  min-width: 180px;
+.sp-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
+  font-size: 11px;
+}
+.sp-chip.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.sp-chip.muted {
+  border-style: dashed;
+  color: var(--muted);
 }
 .sp-check {
   display: inline-flex;

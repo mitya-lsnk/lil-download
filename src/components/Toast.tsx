@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Icon } from "./Icon";
 
 /**
  * One-line transient message. Errors stay until dismissed; confirmations fade,
@@ -23,7 +24,9 @@ export function Toast({
   return (
     <div className={`toast ${kind === "error" ? "err" : ""}`} role="status">
       <span>{message}</span>
-      <button onClick={onClose}>✕</button>
+      <button onClick={onClose}>
+        <Icon name="close" size={13} />
+      </button>
     </div>
   );
 }

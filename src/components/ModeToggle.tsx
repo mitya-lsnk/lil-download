@@ -28,7 +28,7 @@ export function ModeToggle() {
  * setting exists. Appearance is where someone goes looking for it, and there it
  * should say what the options are rather than make you press to find out.
  */
-export function ModeChoice() {
+export function ModeChoice({ label }: { label?: string }) {
   const { mode, setMode } = useSkin();
   const s = useStrings();
   const options = [
@@ -37,7 +37,7 @@ export function ModeChoice() {
   ] as const;
 
   return (
-    <div className="mode-choice" role="group" aria-label={s.settings.theme}>
+    <div className="mode-choice" role="group" aria-label={label}>
       {options.map(([id, label, icon]) => (
         <button
           key={id}

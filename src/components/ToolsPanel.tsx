@@ -122,8 +122,14 @@ export function ToolsPanel({
     }
   }
 
-  async function choose(tool: "ytdlp" | "ffmpeg") {
-    const picked = await open({ multiple: false, directory: false });
+  async function choose(tool: "ytdlp" | "ffmpeg", label: string) {
+    // The dialog names the file too. By the time the OS panel is open the
+    // button that opened it is gone, and "choose a file" is no help at all.
+    const picked = await open({
+      multiple: false,
+      directory: false,
+      title: s.setup.chooseDialog(label),
+    });
     if (typeof picked === "string") {
       onPickPath(tool, picked);
       onRefresh();
@@ -149,7 +155,7 @@ export function ToolsPanel({
           <span className={`b-mono setup-verdict ${upd.stale ? "stale" : "fresh"}`}>
             {upd.stale
               ? `${upd.current ?? s.update.unknown} → ${upd.latest ?? s.update.unknown}`
-              : `✓ ${s.update.upToDate} · ${upd.current ?? s.update.unknown}`}
+              : `${s.update.upToDate} · ${upd.current ?? s.update.unknown}`}
           </span>
         )}
       </div>
@@ -185,7 +191,7 @@ export function ToolsPanel({
                 <span className="setup-what">{what}</span>
                 {st?.found && (
                   <span className="setup-found b-mono">
-                    ✓ {s.setup.found} · {st.version} ·{" "}
+                    <Icon name="ok" size={12} /> {s.setup.found} · {st.version} ·{" "}
                     {st.origin ? s.setup.origin[st.origin] : ""}
                   </span>
                 )}
@@ -248,8 +254,12 @@ export function ToolsPanel({
                     >
                       <Icon name="download" /> {action}
                     </button>
-                    <button className="b-btn" onClick={() => choose(key)}>
-                      {s.setup.choose}
+                    <button
+                      className="b-btn"
+                      onClick={() => choose(key, label)}
+                      title={s.setup.chooseHint}
+                    >
+                      {s.setup.choose(label)}
                     </button>
                   </>
                 )}
@@ -261,7 +271,7 @@ export function ToolsPanel({
 
       {ok && (
         <div className="setup-ok b-mono">
-          ✓ {s.update.updated} {ok}
+          <Icon name="ok" size={12} /> {s.update.updated} {ok}
         </div>
       )}
       {err && <div className="b-error">{err}</div>}

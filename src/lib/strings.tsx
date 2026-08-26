@@ -78,7 +78,13 @@ export const RU = {
     reinstall: "Переустановить",
     installing: "Качаем…",
     extracting: "Распаковываем…",
-    choose: "Указать путь",
+    // Names the program instead of saying "path". A tester read the generic
+    // button as "where do I want it installed" and went looking for a folder —
+    // reasonable, since "yt-dlp" means nothing until someone tells you it is a
+    // program you might already own.
+    choose: (tool: string) => `Указать свой ${tool}`,
+    chooseHint: "Уже стоит в системе? Покажи, где лежит — своя копия качаться не будет.",
+    chooseDialog: (tool: string) => `Выбери файл ${tool}`,
     found: "Нашлось",
     origin: { managed: "своя копия", custom: "указана вручную", system: "системная" },
     ytdlpWhat: "Скачивает. Без неё не работает ничего.",
@@ -319,7 +325,9 @@ export const EN: Dict = {
     reinstall: "Reinstall",
     installing: "Downloading…",
     extracting: "Extracting…",
-    choose: "Choose a path",
+    choose: (tool: string) => `Point at your own ${tool}`,
+    chooseHint: "Already installed? Show where it lives and nothing will be downloaded.",
+    chooseDialog: (tool: string) => `Pick the ${tool} file`,
     found: "Found",
     origin: { managed: "our copy", custom: "set by hand", system: "system" },
     ytdlpWhat: "Does the downloading. Nothing works without it.",

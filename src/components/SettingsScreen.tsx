@@ -162,13 +162,21 @@ export function SettingsScreen({
             <section className="settings-block">
               <div className="settings-field">
                 <span>{s.settings.theme}</span>
-                <ModeChoice />
+                <ModeChoice label={s.settings.theme} />
               </div>
               <div className="settings-field">
                 <span>{s.settings.skin}</span>
                 <SkinPicker />
               </div>
-              <SkinPreview />
+              <SkinPreview
+                name="lil download"
+                words={{
+                  primary: s.card.download,
+                  secondary: s.setup.choose("yt-dlp"),
+                  accent: s.update.update,
+                  check: s.opts.sponsorblock,
+                }}
+              />
             </section>
           )}
         </div>
