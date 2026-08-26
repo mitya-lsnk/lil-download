@@ -2,6 +2,7 @@ mod bins;
 mod cookies;
 mod dl;
 mod probe;
+mod update;
 mod urlx;
 
 use std::path::PathBuf;
@@ -256,6 +257,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Arc::new(dl::Jobs::default()))
         .invoke_handler(tauri::generate_handler![
+            update::check_update,
             tool_status,
             install_tool,
             check_ytdlp_update,

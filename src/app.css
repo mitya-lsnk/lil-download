@@ -2018,3 +2018,60 @@ input[type="checkbox"]:focus-visible {
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* ---------------------------------------------------- app updates */
+
+.upd {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.upd-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.upd-ver {
+  font-size: 11px;
+  color: var(--muted);
+}
+.upd-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.upd-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: var(--bd-w) solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+.upd-head {
+  font-size: 12px;
+  font-weight: 700;
+}
+.upd-notes summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.upd-notes pre {
+  margin: 8px 0 0;
+  max-height: 220px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.upd-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}

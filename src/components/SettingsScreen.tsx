@@ -8,12 +8,13 @@ import { FlagsInput } from "./FlagsInput";
 import { Icon } from "./Icon";
 import { ModeChoice } from "./ModeToggle";
 import { PresetEditor } from "./PresetEditor";
+import { UpdatePanel } from "./UpdatePanel";
 import { SkinPicker } from "./SkinPicker";
 import { SkinPreview } from "./SkinPreview";
 import { TemplateBuilder } from "./TemplateBuilder";
 import { ToolsPanel } from "./ToolsPanel";
 
-export type Tab = "tools" | "download" | "presets" | "look";
+export type Tab = "tools" | "download" | "presets" | "look" | "about";
 
 /**
  * Everything that isn't a download.
@@ -53,6 +54,7 @@ export function SettingsScreen({
     ["download", s.settings.tabDownload],
     ["presets", s.settings.tabPresets],
     ["look", s.settings.tabLook],
+    ["about", s.settings.tabAbout],
   ];
 
   return (
@@ -155,6 +157,12 @@ export function SettingsScreen({
             <section className="settings-block">
               <span className="settings-hint">{s.settings.presetsHint}</span>
               <PresetEditor presets={prefs.presets} onChange={(v) => onSet("presets", v)} />
+            </section>
+          )}
+
+          {tab === "about" && (
+            <section className="settings-block">
+              <UpdatePanel version={__APP_VERSION__} />
             </section>
           )}
 
