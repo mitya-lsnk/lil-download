@@ -1,0 +1,124 @@
+name: build
+
+# Every push builds all four, because the whole point of this file is that
+# nobody has to own four machines. A tag additionally opens a draft release
+# with the same artifacts attached.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing must not hide whether the others are fine.
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            # A list, not a brace glob: upload-artifact matches with @actions/glob,
+            # which understands `**` and understands `{a,b}` as literal text.
+            files: |
+              src-tauri/target/release/bundle/nsis/*
+              src-tauri/target/release/bundle/msi/*
+          - name: macos-arm
+            os: macos-14
+            target: aarch64-apple-darwin
+            files: src-tauri/target/release/bundle/dmg/*.dmg
+          - name: macos-intel
+            os: macos-13
+            target: x86_64-apple-darwin
+            files: src-tauri/target/release/bundle/dmg/*.dmg
+          - name: linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            files: |
+              src-tauri/target/release/bundle/deb/*
+              src-tauri/target/release/bundle/appimage/*
+              src-tauri/target/release/bundle/rpm/*
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Tauri's Linux side is a GTK/WebKit app; none of this ships in the image.
+      - name: system libraries (linux only)
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev \
+            libxdo-dev libssl-dev patchelf build-essential curl wget file
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
+
+      - run: npm ci
+
+      # The frontend is built before the tests, not because the tests need it,
+      # but because tauri-build refuses to run without `dist/` on disk — and it
+      # runs as part of compiling the crate the tests live in. Locally that
+      # directory always happens to exist, which is exactly why this would have
+      # been found here and not before.
+      - name: check
+        run: |
+          npm run build
+          cargo test --manifest-path src-tauri/Cargo.toml --lib
+
+      - name: build
+        run: npm run tauri build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lil-download-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+      # Draft, not published: the artifacts want a look before anyone is told
+      # they exist.
+      #
+      # Created empty and filled one file at a time, because every bundle name
+      # here contains a space ("lil download_0.1.0_x64.dmg") and passing them
+      # as one unquoted list would hand gh a dozen halves of filenames.
+      - name: draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --title "lil download $GITHUB_REF_NAME" \
+            --notes "См. CHANGELOG.md"
+          find out -type f -print0 |
+            xargs -0 -I {} gh release upload "$GITHUB_REF_NAME" "{}" --repo "$GITHUB_REPOSITORY"
