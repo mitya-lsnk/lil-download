@@ -1,0 +1,143 @@
+/* ============================================================
+   Dark mode — an axis orthogonal to the skin.
+
+   <html> carries both data-skin and data-mode, and each block below is
+   [data-mode="dark"][data-skin=…] (specificity 0,2,0) so it wins over the
+   plain [data-skin=…] palette (0,1,0) in skins.css. Import order still
+   matters for the shared rules at the bottom, so this file comes last.
+
+   Only variables are re-pointed here. If a rule needs a literal colour in
+   dark mode, that's a sign the light rule should have used a token.
+   ============================================================ */
+
+[data-mode="dark"][data-skin="studio"] {
+  --paper: #100f0c;
+  --surface: #191712;
+  --surface-2: #141210;
+  --screen: #0b0a08;
+  --screen-ink: #f1efe4;
+  --stage: #131211;
+  --stage-ink: #e5e2d6;
+
+  --ink: #f1efe4;
+  --line: #3a362c;
+  --muted: #8d897c;
+
+  --accent: #ff5a1f;
+  --accent-ink: #120c07;
+  --accent-2: #ff5da2;
+  --accent-2-ink: #120c07;
+  --accent-3: #3ee06a;
+  --accent-3-ink: #08210f;
+  --ok: #3ee06a;
+  --danger: #ff5da2;
+
+  --shadow: 5px 5px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  --shadow-lg: 8px 8px 0 rgba(0, 0, 0, 0.5);
+}
+/* The button lip is an ink line in light mode; on a dark plate it has to be
+   black or it disappears. */
+[data-mode="dark"][data-skin="studio"] .tb-btn,
+[data-mode="dark"][data-skin="studio"] .b-btn {
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+[data-mode="dark"][data-skin="studio"] .tb-btn:hover,
+[data-mode="dark"][data-skin="studio"] .b-btn:hover {
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+}
+[data-mode="dark"][data-skin="studio"] .tb-btn:active,
+[data-mode="dark"][data-skin="studio"] .b-btn:active {
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
+}
+/* Multiply grain is invisible on a dark plate — screen it instead. */
+[data-mode="dark"][data-skin="studio"] .app-shell::after {
+  mix-blend-mode: screen;
+  opacity: 0.06;
+}
+
+[data-mode="dark"][data-skin="brutal"] {
+  --paper: #0e0e0e;
+  --surface: #1a1a1a;
+  --surface-2: #242424;
+  --screen: #000000;
+  --screen-ink: #f4f0e6;
+  --stage: #0a0a0a;
+  --stage-ink: #ece8de;
+
+  --ink: #f4f0e6;
+  --line: #f4f0e6;
+  --muted: #9a968c;
+
+  --accent: #ffde00;
+  --accent-ink: #111111;
+  --accent-2: #ff5bb0;
+  --accent-2-ink: #111111;
+  --accent-3: #6d86ff;
+  --accent-3-ink: #ffffff;
+  --danger: #ff5bb0;
+}
+
+[data-mode="dark"][data-skin="riso"] {
+  --paper: #17130d;
+  --surface: #1e1913;
+  --surface-2: #251f16;
+  --screen: #0e0b07;
+  --screen-ink: #f2e6cf;
+  --stage: #16120d;
+  --stage-ink: #e8ddc7;
+
+  --ink: #f2e6cf;
+  --line: #f2e6cf;
+  --muted: #a1927a;
+
+  --accent: #ff5a2c;
+  --accent-ink: #17130d;
+  --accent-2: #4d69ff;
+  --accent-2-ink: #ffffff;
+  --accent-3: #4d69ff;
+  --accent-3-ink: #ffffff;
+  --danger: #ff5a2c;
+}
+/* Brighten the halftone so the paper texture survives on a dark ground. */
+[data-mode="dark"][data-skin="riso"] .app-shell {
+  background-image: radial-gradient(rgba(255, 90, 44, 0.11) 1px, transparent 1.5px);
+}
+
+[data-mode="dark"][data-skin="te"] {
+  --paper: #232420;
+  --surface: #2c2d27;
+  --surface-2: #313229;
+  --screen: #0d0d0a;
+  --screen-ink: #e8e6da;
+  --stage: #1a1b17;
+  --stage-ink: #e8e6da;
+
+  --ink: #e8e6da;
+  --line: #3c3d35;
+  --muted: #909084;
+
+  --accent: #fa4b00;
+  --accent-ink: #1a0a00;
+  --accent-2: #4a86ff;
+  --accent-2-ink: #ffffff;
+  --accent-3: #35b565;
+  --accent-3-ink: #06210f;
+  --ok: #35b565;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 22px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   Shared: the transparency checkerboard is drawn from literal greys, so it
+   stays bright regardless of mode and blinds you next to a dark chrome.
+   --------------------------------------------------------------------- */
+[data-mode="dark"] .b-checker,
+[data-mode="dark"] .checker {
+  background-image:
+    linear-gradient(45deg, #3a3a3a 25%, transparent 25%, transparent 75%, #3a3a3a 75%),
+    linear-gradient(45deg, #3a3a3a 25%, transparent 25%, transparent 75%, #3a3a3a 75%);
+  background-color: #2a2a2a;
+}

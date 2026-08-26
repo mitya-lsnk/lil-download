@@ -1,0 +1,202 @@
+/* lil view — design system, shared with lil edit (self-hosted fonts, offline)
+ *
+ * Everything is driven by semantic CSS variables. The `:root` values below are
+ * the neo-brutalism skin; src/skins.css re-points the same variables for
+ * [data-skin="studio"|"riso"|"te"], and src/dark.css re-points them again per
+ * skin for [data-mode="dark"]. Component CSS only ever reads the semantic vars.
+ *
+ * One token is specific to a viewer: --stage, the surround behind the picture.
+ * It stays a neutral grey in every skin. A tinted backdrop would shift how the
+ * photo itself reads, and this app's whole job is showing the photo honestly.
+ */
+@import "/fonts/fonts.css";
+
+:root {
+  /* --- surfaces --- */
+  --paper: #f2eee3; /* page background */
+  --surface: #ffffff; /* cards, panels, controls */
+  --surface-2: #f5f2ea; /* inset areas: dropzone, preview, tracks */
+  --screen: #111111; /* dark "screen" preview (mostly TE) */
+  --screen-ink: #ffffff;
+  --stage: #2b2b2b; /* surround behind the image — neutral in every skin */
+  --stage-ink: #e8e8e8; /* captions drawn on top of the stage */
+
+  /* --- ink / lines --- */
+  --ink: #111111; /* primary text */
+  --line: var(--ink); /* borders (differs from ink only in TE) */
+  --muted: #666666;
+
+  /* --- accents --- */
+  --accent: #ffde00; /* primary highlight */
+  --accent-ink: #111111; /* text on --accent */
+  --accent-2: #ff3ea5; /* secondary */
+  --accent-2-ink: #ffffff;
+  --accent-3: #3d5afe; /* tertiary */
+  --accent-3-ink: #ffffff;
+  --ok: #2fa85a;
+  --warn: #f5a623;
+  --danger: #ff3ea5;
+
+  /* --- legacy aliases (do not use in new code) --- */
+  --yellow: var(--accent);
+  --pink: var(--accent-2);
+  --blue: var(--accent-3);
+  --white: var(--surface);
+
+  /* --- type --- */
+  --font-display: "Archivo Black", system-ui, sans-serif;
+  --font-head: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
+  --font-jp: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic",
+    "Noto Sans JP", sans-serif;
+
+  /* --- control sizing (shared so bars line up by function, not by skin) --- */
+  --ctl-h: 40px; /* form controls inside tool bars */
+  --ctl-h-head: 34px; /* header controls */
+
+  /* --- borders / radius / shadow --- */
+  --bd-w: 3px;
+  --bd: var(--bd-w) solid var(--line);
+  --bd-thick: 4px solid var(--line);
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-pill: 0px;
+  --shadow: 6px 6px 0 var(--ink);
+  --shadow-sm: 4px 4px 0 var(--ink);
+  --shadow-lg: 8px 8px 0 var(--ink);
+
+  /* --- motion (per-skin overrides in skins.css) --- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 0.09s;
+  --hover-lift: translate(-2px, -2px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The page itself scrolls — not a box inside it. The scrollbar then belongs to
+ * the window, sits on its right edge, and the wheel works wherever the pointer
+ * happens to be. With the scroll on an inner element it only worked while the
+ * pointer was over that element, which meant hunting for a spot to hover over
+ * whenever a dropdown pushed the page down. */
+html,
+body {
+  margin: 0;
+}
+/* Viewport units rather than percentages: a percentage min-height needs a
+   parent with a definite height, and the whole point here is that nothing
+   above has one any more. */
+#root {
+  min-height: 100vh;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-head);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- primitives ---------- */
+
+.b-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+.b-mono {
+  font-family: var(--font-mono);
+}
+.b-cap {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Button */
+.b-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 11px 18px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+.b-btn:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow-sm);
+}
+.b-btn:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+.b-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+.b-btn--solid {
+  background: var(--ink);
+  color: var(--surface);
+}
+.b-btn--yellow {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Panel / card */
+.b-panel {
+  background: var(--surface);
+  border: var(--bd);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.b-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  /* --screen is dark in every mode, so accent text stays legible; var(--ink)
+     flips light in dark mode and washed the accent out. */
+  background: var(--screen);
+  color: var(--accent);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+
+/* transparency checkerboard (for cut-out previews) */
+.b-checker {
+  background-image:
+    linear-gradient(45deg, #d8d8d8 25%, transparent 25%, transparent 75%, #d8d8d8 75%),
+    linear-gradient(45deg, #d8d8d8 25%, transparent 25%, transparent 75%, #d8d8d8 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  background-color: #fff;
+}
+
+.b-error {
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--danger);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+}

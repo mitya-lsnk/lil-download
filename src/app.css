@@ -1,0 +1,2000 @@
+/* lil download — layout only. Every colour, border and shadow comes from the
+ * shared design system in theme.css / skins.css, so switching skins here works
+ * exactly as it does in lil edit and lil view. */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------- header ---------- */
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: var(--bd);
+  background: var(--surface);
+}
+.head-name {
+  font-size: 18px;
+}
+.head-tag {
+  font-size: 11px;
+  color: var(--muted);
+}
+.head-sp {
+  flex: 1;
+}
+.head .b-btn {
+  height: var(--ctl-h-head);
+  padding: 0 12px;
+}
+
+/* ---------- main column ---------- */
+
+.main {
+  flex: 1;
+}
+.main-col {
+  padding: 20px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ---------- link bar ---------- */
+
+.linkbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.linkbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+}
+.linkbar-input {
+  flex: 1;
+  min-width: 0;
+  height: var(--ctl-h);
+  padding: 0 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 13px;
+}
+.linkbar-input:focus {
+  outline: none;
+  background: var(--surface);
+}
+.linkbar-offer {
+  align-self: flex-start;
+  border: var(--bd);
+  border-style: dashed;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.linkbar-offer:hover {
+  color: var(--ink);
+  border-style: solid;
+}
+
+/* ---------- media card ---------- */
+
+.card {
+  position: relative;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+.card-x:hover {
+  color: var(--ink);
+}
+.card-top {
+  display: flex;
+  gap: 14px;
+}
+.card-thumb {
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: var(--bd);
+  background: var(--surface-2);
+}
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.card-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.25;
+  font-family: var(--font-head);
+}
+.card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.card-source {
+  color: var(--ink);
+}
+
+/* notices: codec warning, playlist, timecode */
+.note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 12px;
+}
+.note .b-btn {
+  padding: 7px 12px;
+  font-size: 11px;
+  margin-left: auto;
+}
+.note-warn {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.note-quiet {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* presets */
+.card-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.preset:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow-sm);
+}
+.preset.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+.preset-name {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.preset-note {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* destination */
+.card-dest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dest-path {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 9px 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dest-why {
+  font-size: 10px;
+  color: var(--muted);
+}
+.card-remember {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.card-remember label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+.card-go {
+  align-self: flex-start;
+}
+
+/* ---------- queue ---------- */
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.queue-empty {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+.job {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.job-head {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.job-title {
+  font-weight: 700;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.job-source {
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: auto;
+}
+.job-bar {
+  height: 10px;
+  border: var(--bd);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.job-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s linear;
+}
+/* Unknown total (live streams, some extractors): sweep instead of lying about
+   a percentage. */
+.job-fill.indet {
+  width: 34%;
+  animation: sweep 1.1s var(--ease) infinite alternate;
+}
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.job-nums {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--muted);
+}
+.job-err {
+  color: var(--danger);
+}
+.job-status {
+  font-size: 10px;
+  color: var(--muted);
+}
+.job-act {
+  display: flex;
+  gap: 8px;
+}
+.job-act .b-btn {
+  padding: 7px 12px;
+  font-size: 11px;
+}
+.job.done .job-fill,
+.job.failed {
+  opacity: 0.85;
+}
+
+/* ---------- first run ---------- */
+
+.setup {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.setup-head h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+.setup-why {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.setup-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.setup-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  flex-wrap: wrap;
+}
+.setup-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 200px;
+}
+.setup-what {
+  font-size: 12px;
+  color: var(--muted);
+}
+.setup-found {
+  font-size: 11px;
+  color: var(--ok);
+}
+.setup-path {
+  font-size: 10px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.setup-row-act {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.setup-row-act .b-btn {
+  padding: 9px 14px;
+  font-size: 11px;
+}
+.setup-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------- misc ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: var(--bd);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 12px;
+  z-index: 50;
+}
+.toast.err {
+  background: var(--danger);
+  color: var(--ink);
+}
+.toast button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+}
+.browser-note {
+  margin: 60px auto;
+  padding: 20px;
+  max-width: 420px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ---------- preset dropdown (header) ---------- */
+
+.pp {
+  position: relative;
+}
+.pp-btn {
+  height: var(--ctl-h-head);
+  padding: 0 12px;
+  font-size: 11px;
+}
+.pp-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+.pp-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 9px 11px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pp-item:hover {
+  background: var(--surface-2);
+}
+.pp-item.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+.pp-name {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pp-note {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ---------- stale-tool banner ---------- */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 220px;
+  font-size: 12px;
+}
+.banner-text .b-mono {
+  font-size: 10px;
+}
+.banner-why {
+  font-size: 11px;
+  opacity: 0.75;
+}
+.banner .b-btn {
+  padding: 9px 14px;
+  font-size: 11px;
+}
+
+.card-arrow {
+  color: var(--muted);
+}
+
+/* ---------- header widgets ----------
+ * Ported from lil view so the skin picker, mode toggle and language chip are
+ * the same objects across the suite — they were rendering unstyled here, which
+ * is why the header didn't line up. */
+
+.skin-pick {
+  display: inline-flex;
+  gap: 4px;
+}
+.skin-chip {
+  width: var(--ctl-h-head);
+  height: var(--ctl-h-head);
+  padding: 3px;
+  background: var(--surface);
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.skin-chip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.skin-sw {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--radius-sm) - 2px);
+}
+/* The language and light/dark switches are plain `b-btn`s like everything else
+   in the header. They used to be their own two classes with their own hover and
+   no resting shadow, so a row of five buttons had two that reacted differently
+   to the same gesture. */
+
+/* Every header control is one height, so the row reads as a single strip. */
+.head .b-btn,
+.head .pp-btn {
+  height: var(--ctl-h-head);
+  min-width: var(--ctl-h-head);
+  padding: 0 10px;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ---------- versions row on the setup screen ---------- */
+
+.setup-versions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.setup-versions .b-btn {
+  padding: 9px 14px;
+  font-size: 11px;
+}
+.setup-checked {
+  font-size: 10px;
+  color: var(--muted);
+}
+.setup-verdict {
+  font-size: 11px;
+  margin-left: auto;
+}
+.setup-verdict.fresh {
+  color: var(--ok);
+}
+.setup-verdict.stale {
+  color: var(--ink);
+  background: var(--accent);
+  padding: 4px 8px;
+}
+.setup-row.stale {
+  border-color: var(--accent);
+}
+.setup-ok {
+  padding: 10px 14px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ok);
+  font-size: 12px;
+}
+.linkbar-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---------- working indicators ----------
+ * An app that shows nothing while it waits on the network reads as hung, which
+ * is the one impression worth spending code to avoid. */
+
+.spin {
+  display: inline-block;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.boot {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.boot-name {
+  font-size: 22px;
+}
+.boot-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.skel {
+  background: var(--surface-2);
+  border: var(--bd-w) solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+/* A sweep rather than a percentage: we genuinely don't know how long the
+   metadata probe will take, and a fake progress bar would be a lie. */
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ink) 8%, transparent),
+    transparent
+  );
+  animation: shimmer 1.2s var(--ease) infinite;
+}
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.skel-thumb {
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  flex: none;
+}
+.skel-meta {
+  flex: 1;
+  gap: 10px;
+  padding-top: 4px;
+}
+.skel-line {
+  height: 16px;
+  width: 55%;
+}
+.skel-line.wide {
+  width: 85%;
+  height: 20px;
+}
+.skel-caption {
+  font-size: 11px;
+  color: var(--muted);
+}
+.skel-card {
+  pointer-events: none;
+}
+
+/* ---------- settings ---------- */
+
+/* One block per tab now, so the rule that used to separate several of them on
+   one page has nothing left to separate. */
+.settings-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+}
+.settings-input {
+  height: var(--ctl-h);
+  padding: 0 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 12px;
+}
+.settings-input:focus {
+  outline: none;
+  background: var(--surface);
+}
+.settings-hint {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.setup-verdict-row {
+  font-size: 10px;
+}
+.setup-verdict-row.fresh {
+  color: var(--ok);
+}
+.setup-verdict-row.stale {
+  color: var(--ink);
+}
+.setup-verdict-row.muted {
+  color: var(--muted);
+}
+.setup-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* ---------- cookies ---------- */
+
+.tools-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+/* Icon only. A browser's name beside a cookie is the label doing the icon's
+   job twice, and it resized the button every time the choice changed. */
+.ck-btn {
+  width: var(--ctl-h-head);
+  padding: 0;
+  justify-content: center;
+  font-size: 11px;
+  text-transform: none;
+}
+.ck-btn.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.ck-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 2px;
+}
+.ck-head {
+  padding: 2px 4px 4px;
+}
+.ck-why {
+  margin: 0 4px 6px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.ck-item {
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+.ck-item:hover {
+  background: var(--surface-2);
+}
+.ck-item.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+.ck-note {
+  font-size: 10px;
+  color: var(--muted);
+  max-width: 420px;
+  line-height: 1.4;
+}
+
+.setup-slow {
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--accent);
+  padding: 6px 8px;
+  max-width: 460px;
+}
+
+/* ---------- icons ----------
+ * The old spinner was a text glyph, and a glyph's box is not square — rotating
+ * it swung the arrow around a point off to one side instead of turning it on
+ * the spot. An SVG box is square, so this now spins where it stands. */
+
+.b-btn svg,
+.tb-btn svg,
+.ck-btn svg,
+.pp-btn svg,
+.dest-path svg,
+.opt-label svg {
+  flex: none;
+  vertical-align: middle;
+}
+.spin {
+  transform-origin: 50% 50%;
+  animation: spin 0.9s linear infinite;
+}
+.card-x {
+  display: inline-flex;
+  line-height: 0;
+}
+
+/* Cookie picker sits in the header now; its menu drops from the right edge so
+   it can't run off screen. */
+.head .ck {
+  flex-direction: row;
+}
+.head .ck-menu {
+  left: auto;
+  right: 0;
+}
+.ck-note {
+  margin: 6px 4px 2px;
+  padding: 6px 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* ---------- per-download options ---------- */
+
+.card-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.opt-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+}
+.opt-time {
+  width: 84px;
+  height: 32px;
+  padding: 0 9px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  text-align: center;
+}
+.opt-time:focus {
+  outline: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.opt-dash {
+  color: var(--muted);
+}
+.opt-select {
+  height: 32px;
+  padding: 0 8px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+.opt-check {
+  cursor: pointer;
+}
+.opt-check input {
+  margin: 0;
+}
+.opt-suggest {
+  border: var(--bd-w) dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.opt-suggest:hover {
+  color: var(--ink);
+  border-style: solid;
+}
+
+/* ---------- one height, one rhythm ----------
+ * The link row was a staircase: a tall input beside two buttons of two other
+ * heights. Everything in a row now shares --ctl-h and differs only in width. */
+
+.linkbar-row {
+  align-items: stretch;
+}
+.linkbar-input,
+.linkbar-row .b-btn,
+.linkbar-row .pp-btn,
+.linkbar-row .ck-btn {
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 1;
+}
+/* Icon-only controls are square, so the row reads as blocks rather than as
+   text of assorted lengths. */
+.linkbar-row .b-btn:not(.b-btn--yellow):not(.pp-btn) {
+  width: var(--ctl-h);
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+}
+.linkbar-row .pp-btn {
+  padding: 0 14px;
+  width: auto;
+}
+
+/* The mode and language chips came over from lil view without the hover the
+   rest of the header has, which made them read as disabled. */
+.skin-chip:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow-sm);
+}
+.skin-chip:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
+/* ---------- cookie access ---------- */
+
+.ck-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ck-item.off {
+  opacity: 0.4;
+  cursor: default;
+}
+.ck-state {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  opacity: 0.7;
+}
+.ck-btn.warn {
+  background: var(--danger);
+  color: var(--ink);
+}
+.ck-alert {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: var(--bd);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  line-height: 1.45;
+  box-shadow: var(--shadow-sm);
+}
+.ck-alert.quiet {
+  background: var(--surface);
+  color: var(--ink);
+}
+.ck-alert .b-btn {
+  align-self: flex-start;
+  padding: 8px 12px;
+  font-size: 10px;
+}
+.ck-dismiss {
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- quality + format menu ---------- */
+
+.pp-menu {
+  min-width: 300px;
+  padding: 8px;
+  gap: 4px;
+}
+.pp-sec {
+  padding: 6px 4px 2px;
+  color: var(--muted);
+}
+.pp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 2px 2px;
+}
+.pp-chip {
+  padding: 6px 10px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.pp-chip:hover {
+  background: var(--surface-2);
+}
+.pp-chip.on {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+}
+.pp-hint {
+  margin: 2px 4px 6px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.pp-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0 4px 6px;
+  font-size: 11px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.pp-check input {
+  margin: 1px 0 0;
+  flex: none;
+}
+
+/* ---------- queue thumbnails ----------
+ * A finished row should be findable by eye. Reading four titles to spot the
+ * one you want is exactly the work a poster frame removes. */
+
+.job-head {
+  align-items: center;
+}
+.job-thumb {
+  width: 64px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: var(--bd-w) solid var(--line);
+  background: var(--surface-2);
+  flex: none;
+}
+
+/* ---------- queue: list and bento ---------- */
+
+.queue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.queue-views {
+  display: flex;
+  gap: 4px;
+}
+.queue-views .b-btn {
+  height: var(--ctl-h-head);
+  width: var(--ctl-h-head);
+  padding: 0;
+  justify-content: center;
+}
+.queue-views .b-btn.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Dense flow so a one-wide card backfills the hole a two-wide one leaves —
+   without it the grid grows ragged gaps as titles vary. */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  grid-auto-flow: dense;
+  gap: 10px;
+  align-items: start;
+}
+
+.queue--bento .job-head {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.queue--bento .job-thumb {
+  width: 100%;
+  height: auto;
+}
+.queue--bento .job-title {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.25;
+}
+.queue--bento .job-source {
+  margin-left: 0;
+}
+.queue--bento .job-act {
+  flex-wrap: wrap;
+}
+.queue--bento .job-act .b-btn {
+  padding: 6px 9px;
+  font-size: 10px;
+}
+.queue--bento .job-nums {
+  gap: 8px;
+}
+
+/* A tile that spans two columns has room for the picture to lead. */
+.queue--bento .job[style*="span 2"] .job-head {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.queue--bento .job[style*="span 2"] .job-thumb {
+  width: 140px;
+  flex: none;
+}
+
+/* ---------- options in two columns ----------
+ * The right half of this block used to be empty while the left one stacked
+ * four controls. */
+
+.card-opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px 22px;
+}
+.opt-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.opt-select.wide {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- bento: tiles, not rows ---------- */
+
+.queue--bento .btn-label {
+  display: none;
+}
+.queue--bento .job-act .b-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* ---------- technical preview under each preset ---------- */
+
+.pp-tech {
+  font-size: 10px;
+  color: var(--accent-3);
+  margin-top: 2px;
+}
+.pp-item.on .pp-tech {
+  color: var(--accent);
+}
+
+/* ---------- download row with optional flags ---------- */
+
+.card-go-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-go {
+  flex: none;
+}
+.flags-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.flags-check input {
+  margin: 0;
+}
+.flags-input {
+  flex: 1;
+  min-width: 160px;
+  height: 32px;
+  padding: 0 10px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 11px;
+}
+.flags-input:focus {
+  outline: none;
+  background: var(--surface);
+}
+/* Plainly inert until the switch is on, so it can't look like it is being used. */
+.flags-input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- checkboxes ----------
+ * Left native, these drew as macOS blue — a colour that belongs to none of the
+ * four skins and disappeared entirely against the dark ones. */
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+}
+input[type="checkbox"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  /* Follows the box. The skins set their own corner radius, and in the round
+     one a square mark sat inside a circle looking like a bug — which it was. */
+  border-radius: inherit;
+  transform: scale(0);
+  background: var(--accent-ink);
+  transition: transform var(--dur) var(--ease);
+}
+input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+input[type="checkbox"]:focus-visible {
+  outline: var(--bd-w) solid var(--accent-3);
+  outline-offset: 2px;
+}
+
+/* ---------- flag suggestions ---------- */
+
+.fl {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.fl-input {
+  width: 100%;
+  height: var(--ctl-h);
+  padding: 0 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 12px;
+}
+.fl-input:focus {
+  outline: none;
+  background: var(--surface);
+}
+.fl-input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.fl-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  /* The catalogue is long on purpose now, so the list scrolls instead of
+     running off the window. */
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.fl-group {
+  display: flex;
+  flex-direction: column;
+}
+.fl-group-name {
+  padding: 8px 9px 4px;
+  font-size: 9px;
+  color: var(--muted);
+}
+/* Marks the flags that expect something after them — the difference between a
+   switch and a question, visible before it goes wrong. */
+.fl-needs {
+  opacity: 0.5;
+  font-weight: 400;
+}
+.fl-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-align: left;
+  padding: 7px 9px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fl-item:hover {
+  background: var(--surface-2);
+}
+.fl-flag {
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+}
+.fl-what {
+  font-size: 10px;
+  color: var(--muted);
+}
+.fl-tab {
+  padding: 5px 9px;
+  font-size: 9px;
+  color: var(--muted);
+  border-top: var(--bd-w) solid var(--line);
+}
+
+/* ---------- filename builder ---------- */
+
+.tb {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tb-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--ctl-h);
+  padding: 8px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.tb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 700;
+  user-select: none;
+}
+/* Colour by category, so "this one is mandatory" is visible before reading. */
+.tb-chip.g-required {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.tb-chip.g-main {
+  background: var(--surface);
+}
+.tb-chip.g-channel {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.tb-chip.g-meta {
+  border-style: dashed;
+  color: var(--muted);
+}
+.tb-chip.g-playlist {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+.tb-grip {
+  font-size: 8px;
+  opacity: 0.5;
+  letter-spacing: -1px;
+}
+.tb-x {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.tb-x:hover {
+  opacity: 1;
+}
+.tb-text {
+  height: 28px;
+  min-width: 2ch;
+  padding: 0 6px;
+  border: var(--bd-w) dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  text-align: center;
+}
+.tb-text:focus {
+  outline: none;
+  background: var(--surface);
+  border-style: solid;
+}
+.tb-add {
+  width: 26px;
+  height: 26px;
+  border: var(--bd-w) dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tb-add:hover {
+  color: var(--ink);
+  border-style: solid;
+}
+
+.tb-search {
+  position: relative;
+}
+.tb-query {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+}
+.tb-query:focus {
+  outline: none;
+}
+.tb-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 45;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tb-group-name {
+  color: var(--muted);
+}
+.tb-group-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+.tb-pick {
+  cursor: pointer;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+.tb-code {
+  font-size: 9px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.tb-warn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: var(--bd-w) solid var(--line);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+}
+.tb-warn .b-btn {
+  margin-left: auto;
+  padding: 7px 11px;
+  font-size: 10px;
+}
+.tb-preview {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.tb-preview-label {
+  color: var(--muted);
+}
+.tb-preview-value {
+  font-weight: 700;
+}
+
+/* ---------- builder: modes, separators, removable text ---------- */
+
+.tb-modes {
+  display: flex;
+  gap: 6px;
+}
+.tb-modes .b-btn {
+  padding: 7px 12px;
+  font-size: 10px;
+}
+.tb-modes .b-btn.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+.tb-raw {
+  width: 100%;
+  height: var(--ctl-h);
+  padding: 0 12px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 12px;
+}
+.tb-raw:focus {
+  outline: none;
+  background: var(--surface);
+}
+.tb-textwrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 2px;
+  border: var(--bd-w) dashed var(--line);
+  border-radius: var(--radius-sm);
+}
+.tb-textwrap .tb-text {
+  border: none;
+  height: 22px;
+}
+.tb-chip.g-dates {
+  border-color: var(--accent-3);
+  color: var(--accent-3);
+}
+.tb-chip.g-chapter,
+.tb-chip.g-episode,
+.tb-chip.g-track,
+.tb-chip.g-section {
+  border-style: dotted;
+}
+.tb-chip.g-sep {
+  border-style: dashed;
+  color: var(--muted);
+}
+.queue-clear {
+  color: var(--muted);
+}
+
+/* ---------- the app is working ---------- */
+
+/* Replaces the old footer ticker. It says one true thing — something is in
+ * flight — and never pretends to know how far along it is, because none of
+ * these operations can say. */
+.head-work {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--bd-w));
+  height: 2px;
+  overflow: hidden;
+  background: var(--line);
+}
+.head-work::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  background: var(--accent);
+  animation: sweepbar 1.4s var(--ease) infinite;
+}
+@keyframes sweepbar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
+/* The access notice, shown inside the browser list instead of across it. */
+.ck-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 9px 10px;
+  border-top: var(--bd-w) solid var(--line);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
+  line-height: 1.45;
+}
+.ck-inline .b-btn {
+  align-self: flex-start;
+  padding: 7px 11px;
+  font-size: 10px;
+}
+
+
+/* ---------- settings: tabs and a header that stays put ---------- */
+
+.settings-bar .head-name {
+  font-size: 15px;
+}
+.settings-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.settings-tabs .b-btn {
+  height: var(--ctl-h-head);
+  padding: 0 12px;
+}
+.settings-col {
+  padding-top: 22px;
+}
+/* The back chevron points down like every other one in the set; here it has to
+   point left, and rotating the shared glyph beats a second icon that would
+   need keeping in step with it. */
+.rot90 {
+  transform: rotate(90deg);
+}
+
+/* ---------- tool rows: one button size, details on demand ---------- */
+
+/* Two buttons of different widths side by side read as two different kinds of
+   action. They aren't — both change which copy of the tool gets used. */
+.setup-row-act {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(132px, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+.setup-row-act .b-btn {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.setup-row-act .setup-progress {
+  grid-column: 1 / -1;
+}
+.setup-channel {
+  grid-column: 1 / -1;
+  display: flex;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.setup-channel-btn {
+  flex: 1;
+  height: 26px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+.setup-channel-btn.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Everything true about an install but inert: the runner, the startup time,
+   the path. Present when asked for, out of the way otherwise — four such lines
+   per tool turned a two-row panel into a wall. */
+.setup-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: default;
+}
+.setup-more-pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 35;
+  min-width: 260px;
+  max-width: 460px;
+  padding: 8px 10px;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.setup-more:hover .setup-more-pop,
+.setup-more:focus-within .setup-more-pop {
+  display: flex;
+}
+
+/* ---------- preset builder ---------- */
+
+.pe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pe-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+.pe-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pe-name {
+  flex: 1;
+  min-width: 0;
+  height: var(--ctl-h);
+  padding: 0 10px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+.pe-name:focus {
+  outline: none;
+  background: var(--surface);
+}
+.pe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.pe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.pe-select {
+  height: 32px;
+  padding: 0 8px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.pe-add {
+  align-self: flex-start;
+}
+
+/* ---------- builder: pieces that move ---------- */
+
+.tb-slot {
+  display: inline-flex;
+  align-items: center;
+}
+/* The gap the piece would land in. Shown rather than implied: without it a
+   drag is a guess right up until it's committed. */
+.tb-caret {
+  width: 3px;
+  align-self: stretch;
+  min-height: 26px;
+  margin-right: 4px;
+  background: var(--accent);
+}
+.tb-chip.lifted,
+.tb-textwrap.lifted {
+  opacity: 0.35;
+}
+.tb-strip.dragging {
+  cursor: grabbing;
+}
+.tb-grip {
+  cursor: grab;
+  /* The whole point of the handle: it must take the pointer press itself
+     rather than let it become a text selection or a caret in the input. */
+  touch-action: none;
+  user-select: none;
+  padding: 2px 1px;
+}
+.tb-grip:focus-visible {
+  outline: var(--bd-w) solid var(--accent-3);
+}
+
+/* Said next to the field, before yt-dlp has a chance to misread it. */
+.fl-warn {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--danger);
+}
+
+/* ---------- what a skin looks like ---------- */
+
+.sp {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+.sp-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-title {
+  font-size: 17px;
+}
+.sp-tag {
+  font-size: 10px;
+  color: var(--muted);
+}
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-input {
+  flex: 1;
+  min-width: 180px;
+  font-family: var(--font-mono);
+}
+.sp-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.sp-bar {
+  height: 8px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.sp-bar-fill {
+  display: block;
+  width: 62%;
+  height: 100%;
+  background: var(--accent);
+}
+
+/* Sends people to the builder from the one place they'd wonder about it. */
+.pp-build {
+  border-top: var(--bd-w) dashed var(--line);
+}
+.pp-build .pp-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- speed cap ---------- */
+
+.lim {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lim-num {
+  width: 120px;
+  flex: none;
+  text-align: right;
+}
+.lim-units {
+  display: flex;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.lim-unit {
+  min-width: 68px;
+  padding: 0 10px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.lim-unit.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

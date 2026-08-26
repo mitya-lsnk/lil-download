@@ -1,0 +1,39 @@
+[package]
+name = "lil-download"
+version = "0.1.0"
+description = "lil download — paste a link, get the file"
+authors = ["lsnk"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+# The `_lib` suffix keeps the lib name distinct from the bin name (a Windows
+# quirk, see rust-lang/cargo#8519).
+name = "lil_download_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-clipboard-manager = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+
+# Fetching yt-dlp/ffmpeg. rustls rather than native-tls so the build doesn't
+# depend on the platform's OpenSSL.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+futures-util = "0.3"
+sha2 = "0.10"
+hex = "0.4"
+
+# ffmpeg ships zipped on macOS/Windows and as tar.xz on Linux.
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tar = "0.4"
+xz2 = "0.1"

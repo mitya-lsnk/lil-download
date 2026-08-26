@@ -1,0 +1,193 @@
+/* ============================================================
+   lil view skins.
+   Neo-brutalism is the default and lives in theme.css. Each block below
+   re-points the semantic variables, then restyles the handful of viewer
+   parts that variables can't express, and defines its own motion.
+
+   Token values are shared with lil edit so the suite stays one family.
+   The structural rules are not: this app has a toolbar, a filmstrip and a
+   status bar where that one has tool cards.
+
+   --stage is deliberately close to neutral in all four skins. The picture
+   is the subject; a coloured surround would change how it reads.
+   ============================================================ */
+
+/* =====================================================================
+   LIL STUDIO — the suite default. Warm paper, vermilion, LED green,
+   pressable buttons with a hard lip.
+   ===================================================================== */
+[data-skin="studio"] {
+  --paper: #e7e4da;
+  --surface: #f3f1e9;
+  --surface-2: #ebe8de;
+  --screen: #17150f;
+  --screen-ink: #f3f1e9;
+  --stage: #2a2823;
+  --stage-ink: #e9e6da;
+
+  --ink: #17150f;
+  --line: #17150f;
+  --muted: #6c6a5f;
+
+  --accent: #ff3d0d;
+  --accent-ink: #ffffff;
+  --accent-2: #ff4f9a;
+  --accent-2-ink: #ffffff;
+  --accent-3: #2fbf4c;
+  --accent-3-ink: #08210f;
+  --ok: #2fbf4c;
+  --warn: #ffb000;
+  --danger: #ff4f9a;
+
+  --font-display: "Archivo", "Space Grotesk", system-ui, sans-serif;
+  --font-head: "Archivo", "Space Grotesk", system-ui, sans-serif;
+
+  --bd-w: 1.5px;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-pill: 999px;
+  --shadow: 5px 5px 0 rgba(23, 21, 15, 0.16);
+  --shadow-sm: 3px 3px 0 rgba(23, 21, 15, 0.14);
+  --shadow-lg: 8px 8px 0 rgba(23, 21, 15, 0.18);
+
+  --dur: 0.12s;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --hover-lift: none;
+}
+
+/* Studio's signature: buttons sit on a lip and sink when pressed, rather than
+   sliding diagonally the way the brutalist ones do. */
+[data-skin="studio"] .tb-btn,
+[data-skin="studio"] .b-btn {
+  box-shadow: 0 4px 0 rgba(23, 21, 15, 0.22);
+}
+[data-skin="studio"] .tb-btn:hover,
+[data-skin="studio"] .b-btn:hover {
+  transform: translateY(1px);
+  box-shadow: 0 3px 0 rgba(23, 21, 15, 0.22);
+}
+[data-skin="studio"] .tb-btn:active,
+[data-skin="studio"] .b-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(23, 21, 15, 0.22);
+}
+/* Film grain over the chrome — never over the stage. */
+[data-skin="studio"] .app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(rgba(23, 21, 15, 0.9) 0.5px, transparent 0.6px);
+  background-size: 3px 3px;
+}
+
+/* =====================================================================
+   JAPANESE RISO POP — vermilion + cobalt, halftone paper, print
+   misregistration in the shadows.
+   ===================================================================== */
+[data-skin="riso"] {
+  --paper: #f5ebd8;
+  --surface: #f5ebd8;
+  --surface-2: #f2e6d0;
+  --screen: #1a1712;
+  --screen-ink: #f5ebd8;
+  --stage: #2b2721;
+  --stage-ink: #f2e6d0;
+
+  --ink: #1a1712;
+  --line: var(--ink);
+  --muted: #8a7e68;
+
+  --accent: #ea3a0c;
+  --accent-ink: #f5ebd8;
+  --accent-2: #2233c4;
+  --accent-2-ink: #f5ebd8;
+  --accent-3: #2233c4;
+  --accent-3-ink: #f5ebd8;
+  --danger: #ea3a0c;
+
+  --font-display: "Science Gothic", "Archivo Black", system-ui, sans-serif;
+  --font-head: "Science Gothic", "Space Grotesk", system-ui, sans-serif;
+
+  --bd-w: 2.5px;
+  --radius: 3px;
+  --radius-sm: 2px;
+  --shadow: 4px 4px 0 var(--accent-2);
+  --shadow-sm: 3px 3px 0 var(--accent-2);
+  --shadow-lg: 6px 6px 0 var(--accent-2);
+
+  --dur: 0.13s;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --hover-lift: translate(-2px, -2px);
+}
+
+/* Paper dusting across the chrome. */
+[data-skin="riso"] .app-shell {
+  background-image: radial-gradient(rgba(234, 58, 12, 0.09) 1px, transparent 1.5px);
+  background-size: 5px 5px;
+}
+/* Hand-stamped feel on press. */
+[data-skin="riso"] .tb-btn:hover {
+  transform: translate(-2px, -2px) rotate(-0.6deg);
+}
+
+/* =====================================================================
+   DEVICE — hairline borders, rounded plates, quiet greys, one loud orange.
+   ===================================================================== */
+[data-skin="te"] {
+  --paper: #e4e3de;
+  --surface: #edece6;
+  --surface-2: #eae9e3;
+  --screen: #15150f;
+  --screen-ink: #e6e4d8;
+  --stage: #24241f;
+  --stage-ink: #e6e4d8;
+
+  --ink: #1e1e1b;
+  --line: #d3d2cc;
+  --muted: #8a897f;
+
+  --accent: #fa4b00;
+  --accent-ink: #241000;
+  --accent-2: #2e6ff2;
+  --accent-2-ink: #ffffff;
+  --accent-3: #2fa85a;
+  --accent-3-ink: #ffffff;
+  --ok: #2fa85a;
+  --warn: #f5a623;
+  --danger: #fa4b00;
+
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-head: "Archivo", system-ui, sans-serif;
+
+  --bd-w: 1px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 6px 18px rgba(0, 0, 0, 0.1);
+
+  --dur: 0.16s;
+  --ease: cubic-bezier(0.33, 0, 0.15, 1);
+  --hover-lift: none;
+}
+
+/* Device labels are small, spaced and uppercase. */
+[data-skin="te"] .status-bar,
+[data-skin="te"] .tb-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+/* Active toggles are shown by colour only — tinted plate, accent border, accent
+   glyph. No indicator dot: adding a mark next to the icon made the button a
+   different shape from its neighbours and read as a second control. */
+[data-skin="te"] .tb-btn.on {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  color: var(--accent);
+  border-color: var(--accent);
+}
