@@ -1,7 +1,7 @@
 {
   "name": "lil-download",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Paste a link, get the file. Video and audio downloader built on yt-dlp and ffmpeg.",
   "license": "MIT",

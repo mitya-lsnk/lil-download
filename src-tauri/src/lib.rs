@@ -177,6 +177,24 @@ fn default_download_dir(app: tauri::AppHandle) -> Option<String> {
         .map(|p| p.to_string_lossy().into_owned())
 }
 
+/// The exact argument explorer.exe needs in order to select a file.
+///
+/// Explorer parses its own command line rather than using the one Windows hands
+/// it, and gets it wrong in a particular way: the path has to be quoted and has
+/// to follow `/select,` with no space between. Give it anything else — an
+/// unquoted path with a space in it, which is most of them, since our filenames
+/// are built from video titles — and it does not report a problem. It opens
+/// Documents. Which is exactly what a tester saw.
+#[cfg(windows)]
+fn explorer_select(path: &std::path::Path) -> String {
+    let raw = path.to_string_lossy();
+    // The extended-length form is what `canonicalize` produces and what
+    // explorer refuses to open. Nothing here creates it, but a path arriving
+    // from elsewhere might carry it.
+    let clean = raw.strip_prefix(r"\\?\").unwrap_or(&raw);
+    format!("/select,\"{clean}\"")
+}
+
 /// Move a downloaded file to the system Trash.
 ///
 /// Trash, not delete. The row this is reached from sits next to "показать в
@@ -213,9 +231,11 @@ fn reveal(path: String) -> Result<(), String> {
     };
     #[cfg(windows)]
     let mut cmd = {
+        use std::os::windows::process::CommandExt;
         let mut c = std::process::Command::new("explorer");
-        // No space after the comma — explorer is picky about this exact form.
-        c.arg(format!("/select,{}", p.display()));
+        // `raw_arg`, not `arg`: the normal path quotes the whole thing as one
+        // argument, and explorer wants the quotes around the *path* only.
+        c.raw_arg(explorer_select(&p));
         c
     };
     #[cfg(target_os = "linux")]
@@ -252,4 +272,23 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    /// Runs everywhere, because the bug is in a string and not in Windows: the
+    /// argument was built wrong long before explorer ever saw it.
+    #[test]
+    #[cfg(windows)]
+    fn a_path_with_spaces_reaches_explorer_in_one_piece() {
+        use super::explorer_select;
+        use std::path::Path;
+
+        let a = explorer_select(Path::new(r"C:\Users\x\Мои видео\Just Abrams.mp4"));
+        assert_eq!(a, r#"/select,"C:\Users\x\Мои видео\Just Abrams.mp4""#);
+
+        // The extended-length prefix would make explorer open nothing at all.
+        let b = explorer_select(Path::new(r"\\?\C:\d\f.mp4"));
+        assert_eq!(b, r#"/select,"C:\d\f.mp4""#);
+    }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "lil-download"
-version = "0.1.1"
+version = "0.1.2"
 description = "lil download — paste a link, get the file"
 authors = ["lsnk"]
 license = "MIT"
