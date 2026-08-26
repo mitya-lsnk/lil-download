@@ -26,23 +26,28 @@ jobs:
         include:
           - name: windows
             os: windows-latest
-            target: x86_64-pc-windows-msvc
+            targets: x86_64-pc-windows-msvc
+            args: ""
             # A list, not a brace glob: upload-artifact matches with @actions/glob,
             # which understands `**` and understands `{a,b}` as literal text.
             files: |
               src-tauri/target/release/bundle/nsis/*
               src-tauri/target/release/bundle/msi/*
-          - name: macos-arm
+          # One Mac build for both chips, not two.
+          #
+          # The macos-13 (Intel) runners are all but gone — the first attempt sat
+          # queued for two hours and never started. A universal binary built on
+          # Apple Silicon covers Intel Macs anyway, and gives their owners one
+          # download instead of a choice they shouldn't have to make.
+          - name: macos
             os: macos-14
-            target: aarch64-apple-darwin
-            files: src-tauri/target/release/bundle/dmg/*.dmg
-          - name: macos-intel
-            os: macos-13
-            target: x86_64-apple-darwin
-            files: src-tauri/target/release/bundle/dmg/*.dmg
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+            args: --target universal-apple-darwin
+            files: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           - name: linux
             os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
+            targets: x86_64-unknown-linux-gnu
+            args: ""
             files: |
               src-tauri/target/release/bundle/deb/*
               src-tauri/target/release/bundle/appimage/*
@@ -67,12 +72,12 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.targets }}
 
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          key: ${{ matrix.target }}
+          key: ${{ matrix.name }}
 
       - run: npm ci
 
@@ -87,7 +92,7 @@ jobs:
           cargo test --manifest-path src-tauri/Cargo.toml --lib
 
       - name: build
-        run: npm run tauri build
+        run: npm run tauri build -- ${{ matrix.args }}
 
       - uses: actions/upload-artifact@v4
         with:

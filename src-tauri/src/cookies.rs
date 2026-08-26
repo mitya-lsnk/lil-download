@@ -259,14 +259,18 @@ mod tests {
     /// Found by the Windows and Linux runners on the very first CI run, which
     /// is the entire argument for having them: three months of local testing on
     /// one Mac could not have noticed.
+    ///
+    /// Only the off-macOS half asserts an answer. On a Mac, Safari being
+    /// reported as absent is a perfectly ordinary result — a machine where it
+    /// has never been opened has no cookie file — and the first version of this
+    /// test claimed otherwise, which the macOS runner rejected immediately.
     #[test]
     fn safari_is_absent_rather_than_mysterious_off_macos() {
         let st = check("safari");
-        if cfg!(target_os = "macos") {
-            assert_ne!(st.verdict, Verdict::NotInstalled);
-        } else {
+        if !cfg!(target_os = "macos") {
             assert_eq!(st.verdict, Verdict::NotInstalled);
             assert_eq!(st.path, None);
         }
+        assert_ne!(st.verdict, Verdict::Unknown);
     }
 }
