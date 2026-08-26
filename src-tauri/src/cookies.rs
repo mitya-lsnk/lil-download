@@ -55,6 +55,17 @@ fn is_chromium_family(browser: &str) -> bool {
     )
 }
 
+/// Can this browser exist on this system at all?
+///
+/// Safari for Windows was abandoned in 2012 and never existed on Linux, so
+/// there is nothing to look for and nothing uncertain about it. Without this
+/// the picker offered Safari on Windows with the verdict "непонятно" — an
+/// answer that invites someone to go looking for a permission problem that
+/// cannot exist.
+fn possible_here(browser: &str) -> bool {
+    !(browser == "safari" && !cfg!(target_os = "macos"))
+}
+
 /// Candidate cookie files, most likely first. Empty when we don't know the
 /// platform's layout — which is reported as Unknown rather than NotInstalled,
 /// because "we didn't look" and "it isn't there" are different answers.
@@ -152,6 +163,14 @@ fn judge(browser: &str, existing: Option<(&PathBuf, bool)>) -> Verdict {
 }
 
 pub fn check(browser: &str) -> CookieStatus {
+    if !possible_here(browser) {
+        return CookieStatus {
+            browser: browser.into(),
+            verdict: Verdict::NotInstalled,
+            path: None,
+        };
+    }
+
     let cands = candidates(browser);
     if cands.is_empty() {
         return CookieStatus { browser: browser.into(), verdict: Verdict::Unknown, path: None };
@@ -234,6 +253,20 @@ mod tests {
                 let st = check(b);
                 assert_ne!(st.verdict, Verdict::Unknown, "{b} on a mapped platform");
             }
+        }
+    }
+
+    /// Found by the Windows and Linux runners on the very first CI run, which
+    /// is the entire argument for having them: three months of local testing on
+    /// one Mac could not have noticed.
+    #[test]
+    fn safari_is_absent_rather_than_mysterious_off_macos() {
+        let st = check("safari");
+        if cfg!(target_os = "macos") {
+            assert_ne!(st.verdict, Verdict::NotInstalled);
+        } else {
+            assert_eq!(st.verdict, Verdict::NotInstalled);
+            assert_eq!(st.path, None);
         }
     }
 }
