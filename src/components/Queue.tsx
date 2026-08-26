@@ -41,7 +41,8 @@ export function Queue({
   onView: (v: QueueView) => void;
   onCancel: (id: number) => void;
   onReveal: (path: string) => void;
-  onRemove: (id: number) => void;
+  /** `withFile` also sends the downloaded file to the Trash. */
+  onRemove: (id: number, withFile: boolean) => void;
   /** Load this link back into the card to run it with different settings. */
   onAgain: (url: string) => void;
   onCopy: (url: string) => void;
@@ -138,7 +139,7 @@ const JobRow = memo(function JobRow({
   span: number | null;
   onCancel: (id: number) => void;
   onReveal: (path: string) => void;
-  onRemove: (id: number) => void;
+  onRemove: (id: number, withFile: boolean) => void;
   onAgain: (url: string) => void;
   onCopy: (url: string) => void;
 }) {
@@ -217,7 +218,14 @@ const JobRow = memo(function JobRow({
             <button className="b-btn" onClick={() => onAgain(j.url)}>
               <Icon name="sliders" /> <span className="btn-label">{s.queue.again}</span>
             </button>
-            <button className="b-btn" onClick={() => onRemove(j.id)}>
+            {/* Held down, the same button also puts the file in the Trash —
+                said out loud in the tooltip, because a modifier nobody knows
+                about is the same as a feature that isn't there. */}
+            <button
+              className="b-btn"
+              title={j.path ? s.queue.removeWithFile : s.queue.remove}
+              onClick={(e) => onRemove(j.id, (e.metaKey || e.ctrlKey) && !!j.path)}
+            >
               <Icon name="remove" /> <span className="btn-label">{s.queue.remove}</span>
             </button>
           </>

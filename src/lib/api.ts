@@ -110,6 +110,7 @@ export const api = {
   cancelDownload: (id: number) => call<void>("cancel_download", { id }),
   defaultDownloadDir: () => call<string | null>("default_download_dir"),
   reveal: (path: string) => call<void>("reveal", { path }),
+  trashFile: (path: string) => call<void>("trash_file", { path }),
 };
 
 // ---- events ----

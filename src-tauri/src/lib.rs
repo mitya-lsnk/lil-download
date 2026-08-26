@@ -177,6 +177,26 @@ fn default_download_dir(app: tauri::AppHandle) -> Option<String> {
         .map(|p| p.to_string_lossy().into_owned())
 }
 
+/// Move a downloaded file to the system Trash.
+///
+/// Trash, not delete. The row this is reached from sits next to "показать в
+/// папке" and gets clicked by mistake; a download that took an hour should
+/// survive a misplaced click, and every desktop already has the mechanism for
+/// that. Nothing here removes anything permanently.
+#[tauri::command]
+async fn trash_file(path: String) -> Result<(), String> {
+    off_thread(move || {
+        let p = PathBuf::from(&path);
+        // Refuse anything that isn't a plain file we can see. A directory here
+        // would mean the path came from somewhere it shouldn't have.
+        if !p.is_file() {
+            return Err("файла уже нет на месте".to_string());
+        }
+        trash::delete(&p).map_err(|e| format!("не убрать в корзину: {e}"))
+    })
+    .await?
+}
+
 /// Show a finished file in Finder/Explorer/the file manager. Three platforms,
 /// three completely different incantations.
 #[tauri::command]
@@ -228,6 +248,7 @@ pub fn run() {
             cancel_download,
             default_download_dir,
             reveal,
+            trash_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

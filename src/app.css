@@ -1979,3 +1979,33 @@ input[type="checkbox"]:focus-visible {
     animation: none;
   }
 }
+
+/* ---------- light / dark, said out loud ---------- */
+
+.mode-choice {
+  display: inline-flex;
+  align-self: flex-start;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.mode-choice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.mode-choice-btn:hover {
+  color: var(--ink);
+}
+.mode-choice-btn.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

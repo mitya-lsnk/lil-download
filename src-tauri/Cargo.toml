@@ -1,6 +1,6 @@
 [package]
 name = "lil-download"
-version = "0.1.0"
+version = "0.1.1"
 description = "lil download — paste a link, get the file"
 authors = ["lsnk"]
 license = "MIT"
@@ -33,6 +33,9 @@ hex = "0.4"
 
 # ffmpeg ships zipped on macOS/Windows and as tar.xz on Linux.
 zip = { version = "2", default-features = false, features = ["deflate"] }
+# Deleting a downloaded file sends it to the Trash rather than unlinking it.
+# A misplaced click on a 4 GB download that took an hour should be undoable.
+trash = "5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 tar = "0.4"

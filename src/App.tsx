@@ -123,9 +123,22 @@ export default function App() {
   const cancelJob = useCallback((id: number) => {
     api.cancelDownload(id).catch(() => {});
   }, []);
-  const removeJob = useCallback((id: number) => {
-    setJobs((js) => js.filter((j) => j.id !== id));
-  }, []);
+  const removeJob = useCallback(
+    (id: number, withFile: boolean) => {
+      // The path is read from the ref rather than from inside the updater:
+      // React may run an updater twice, and trashing a file twice is not the
+      // kind of thing to leave to chance.
+      const path = withFile ? jobsRef.current.find((j) => j.id === id)?.path : null;
+      if (path) {
+        api
+          .trashFile(path)
+          .then(() => setToast({ msg: s.queue.trashed, kind: "info" }))
+          .catch((e) => setToast({ msg: String(e), kind: "error" }));
+      }
+      setJobs((js) => js.filter((j) => j.id !== id));
+    },
+    [s.queue.trashed],
+  );
   const revealJob = useCallback((path: string) => {
     api.reveal(path).catch((e) => setToast({ msg: String(e), kind: "error" }));
   }, []);

@@ -6,6 +6,7 @@ import { ratePerSecond, type Prefs, type RateUnit } from "../lib/settings";
 import { bytes } from "../lib/format";
 import { FlagsInput } from "./FlagsInput";
 import { Icon } from "./Icon";
+import { ModeChoice } from "./ModeToggle";
 import { PresetEditor } from "./PresetEditor";
 import { SkinPicker } from "./SkinPicker";
 import { SkinPreview } from "./SkinPreview";
@@ -159,7 +160,14 @@ export function SettingsScreen({
 
           {tab === "look" && (
             <section className="settings-block">
-              <SkinPicker />
+              <div className="settings-field">
+                <span>{s.settings.theme}</span>
+                <ModeChoice />
+              </div>
+              <div className="settings-field">
+                <span>{s.settings.skin}</span>
+                <SkinPicker />
+              </div>
               <SkinPreview />
             </section>
           )}
