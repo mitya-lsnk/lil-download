@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import { api, on, type ToolPaths, type ToolStatus, type UpdateInfo } from "../lib/api";
 import type { Channel } from "../lib/settings";
+import { forgetUpdate, readUpdate, writeUpdate } from "../lib/cache";
 import { bytes } from "../lib/format";
 import { useStrings } from "../lib/i18n";
 import { Icon } from "./Icon";
@@ -67,19 +68,33 @@ export function ToolsPanel({
 
   const ytChannel = channels?.ytdlp ?? "stable";
 
-  const check = useCallback(async () => {
-    setChecking(true);
-    setErr(null);
-    try {
-      setUpd(await api.checkYtdlpUpdate(paths, ytChannel));
-      setCheckedAt(new Date());
-    } catch (e) {
-      setErr(String(e));
-    } finally {
-      setChecking(false);
-    }
+  const check = useCallback(
+    async (force = false) => {
+      // Opening Settings shouldn't cost a network round-trip every time. The
+      // button beside this still forces one, which is what it is for.
+      if (!force) {
+        const cached = readUpdate();
+        if (cached) {
+          setUpd(cached);
+          return;
+        }
+      }
+      setChecking(true);
+      setErr(null);
+      try {
+        const u = await api.checkYtdlpUpdate(paths, ytChannel);
+        writeUpdate(u);
+        setUpd(u);
+        setCheckedAt(new Date());
+      } catch (e) {
+        setErr(String(e));
+      } finally {
+        setChecking(false);
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paths, ytChannel]);
+    [paths, ytChannel],
+  );
 
   useEffect(() => {
     check();
@@ -92,11 +107,13 @@ export function ToolsPanel({
     setProg(null);
     try {
       const st = await api.installTool(tool, channels?.[tool] ?? "stable");
+      // The remembered verdict describes the copy we just replaced.
+      forgetUpdate();
       // Name the version: "готово" alone leaves you wondering whether anything
       // actually changed.
       setOk(`${st.tool} ${st.version ?? ""}`.trim());
       onRefresh();
-      if (tool === "ytdlp") await check();
+      if (tool === "ytdlp") await check(true);
     } catch (e) {
       setErr(String(e));
     } finally {
@@ -116,7 +133,7 @@ export function ToolsPanel({
   return (
     <>
       <div className="setup-versions">
-        <button className="b-btn" onClick={check} disabled={checking}>
+        <button className="b-btn" onClick={() => check(true)} disabled={checking}>
           <Icon name="refresh" className={checking ? "spin" : ""} />{" "}
           {checking ? s.update.checking : s.update.check}
         </button>

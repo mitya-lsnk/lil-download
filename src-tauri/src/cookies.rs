@@ -206,11 +206,11 @@ pub fn check(browser: &str) -> CookieStatus {
 pub fn open_privacy_settings() -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        return std::process::Command::new("open")
+        std::process::Command::new("open")
             .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
             .spawn()
             .map(|_| ())
-            .map_err(|e| format!("не открыть настройки: {e}"));
+            .map_err(|e| format!("не открыть настройки: {e}"))
     }
     #[cfg(not(target_os = "macos"))]
     Err("отдельного разрешения на этой системе не требуется".into())

@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 
 import { useStrings } from "../lib/i18n";
+import { useCloseOnBlur } from "../lib/useCloseOnBlur";
 
 type Group = "net" | "files" | "meta" | "pick" | "subs" | "live" | "audio" | "access" | "misc";
 
@@ -148,7 +149,7 @@ export function FlagsInput({
   placeholder?: string;
 }) {
   const s = useStrings();
-  const [open, setOpen] = useState(false);
+  const { open, show, hideSoon, hideNow } = useCloseOnBlur();
   const ref = useRef<HTMLInputElement>(null);
 
   // The token being typed: everything after the last space.
@@ -197,7 +198,7 @@ export function FlagsInput({
       }
     }
     onChange(`${replaced ? parts.join("") : flag} `);
-    setOpen(false);
+    hideNow();
     ref.current?.focus();
   }
 
@@ -212,17 +213,16 @@ export function FlagsInput({
         spellCheck={false}
         onChange={(e) => {
           onChange(e.target.value);
-          setOpen(true);
+          show();
         }}
-        onFocus={() => setOpen(true)}
-        // A click on a suggestion has to land before the list closes.
-        onBlur={() => setTimeout(() => setOpen(false), 140)}
+        onFocus={show}
+        onBlur={hideSoon}
         onKeyDown={(e) => {
           if (e.key === "Tab" && hits.length > 0) {
             e.preventDefault();
             complete(hits[0].f);
           }
-          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Escape") hideNow();
         }}
       />
       {dangling && !disabled && (

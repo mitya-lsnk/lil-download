@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
@@ -15,6 +15,8 @@ import {
 } from "./lib/settings";
 import { useStrings } from "./lib/i18n";
 import { readDraft, readHistory, writeDraft, writeHistory } from "./lib/history";
+import { forgetUpdate, readTools, readUpdate, writeTools, writeUpdate } from "./lib/cache";
+import { guessThumb } from "./lib/thumb";
 import { LanguagePicker } from "./components/LanguagePicker";
 import { CookiePicker } from "./components/CookiePicker";
 import { Icon } from "./components/Icon";
@@ -23,21 +25,36 @@ import { MediaCard } from "./components/MediaCard";
 import { ModeToggle } from "./components/ModeToggle";
 import { PresetPicker } from "./components/PresetPicker";
 import { Queue, type Job } from "./components/Queue";
-import { SettingsScreen, type Tab as SettingsTab } from "./components/SettingsScreen";
-import { SetupScreen } from "./components/SetupScreen";
+import type { Tab as SettingsTab } from "./components/SettingsScreen";
 import { BootScreen, CardSkeleton } from "./components/Skeleton";
+
+// Split out of the first load. Between them these pull in the 80-field filename
+// catalogue, the flag catalogue and the preset editor — none of which the main
+// screen touches, and all of which were being parsed before the window could
+// draw. They arrive from disk in a frame or two when they are actually opened.
+const SettingsScreen = lazy(() =>
+  import("./components/SettingsScreen").then((m) => ({ default: m.SettingsScreen })),
+);
+const SetupScreen = lazy(() =>
+  import("./components/SetupScreen").then((m) => ({ default: m.SetupScreen })),
+);
 import { Toast } from "./components/Toast";
 
 export default function App() {
   const s = useStrings();
   const { prefs, set, setRule } = usePrefs();
 
-  const [tools, setTools] = useState<ToolStatus[] | null>(null);
+  // Last launch's answer, shown on the first frame. Locating the tools means
+  // running both of them to read their versions; waiting on that behind a
+  // splash screen was most of what "медленный запуск" actually was.
+  const [tools, setTools] = useState<ToolStatus[] | null>(readTools);
   const [setupDone, setSetupDone] = useState(false);
   // Latches once yt-dlp turns up missing. Without it the setup screen closes
   // itself the instant the install finishes — taking the "✓ обновили до …"
   // confirmation with it, which is precisely when you want to read it.
   const [needSetup, setNeedSetup] = useState(false);
+  /** Has a live tool check come back yet, as opposed to the remembered one. */
+  const [checked, setChecked] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState<SettingsTab | null>(null);
   const [osDownloads, setOsDownloads] = useState<string | null>(null);
 
@@ -75,13 +92,22 @@ export default function App() {
   // Restored rather than started empty: the Full Disk Access flow *requires* a
   // restart, so the retry the user came back for must still be on screen.
   const [jobs, setJobs] = useState<Job[]>(readHistory);
+  // Ids continue past whatever was restored, so a new job can't collide with a
+  // remembered one. Seeded from the state above rather than by parsing storage
+  // a second time.
+  const nextId = useRef(0);
+  if (nextId.current === 0) nextId.current = Math.max(0, ...jobs.map((j) => j.id)) + 1;
 
   const [draft, setDraft] = useState<string>(readDraft);
   const [toast, setToast] = useState<{ msg: string; kind: "info" | "error" } | null>(null);
 
-  // Ids continue past whatever was restored, so a new job can't collide with a
-  // remembered one.
-  const nextId = useRef(Math.max(0, ...readHistory().map((j) => j.id)) + 1);
+  // Read by the unload handler, which must see the newest values without being
+  // re-registered on every keystroke and every progress tick.
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+
   // Memoised on the three values it actually contains. As a plain literal it
   // was a new object every render, and ToolsPanel re-ran its version check on
   // each one — so typing a filename template hammered GitHub, one request per
@@ -91,18 +117,88 @@ export default function App() {
     [prefs.ytdlpPath, prefs.ffmpegPath, prefs.cookies],
   );
 
+  // Stable identities, so the memoised queue rows have something to compare
+  // against. Recreated inline they change on every render and `memo` becomes a
+  // comparison that always fails — the cost without the benefit.
+  const cancelJob = useCallback((id: number) => {
+    api.cancelDownload(id).catch(() => {});
+  }, []);
+  const removeJob = useCallback((id: number) => {
+    setJobs((js) => js.filter((j) => j.id !== id));
+  }, []);
+  const revealJob = useCallback((path: string) => {
+    api.reveal(path).catch((e) => setToast({ msg: String(e), kind: "error" }));
+  }, []);
+  // `handleLink` closes over most of the component's state, so it is a new
+  // function every render and can never be a stable prop. The ref keeps the
+  // callback identity fixed while still calling the current version.
+  const handleLinkRef = useRef<(raw: string, quick?: boolean) => void>(() => {});
+  const againWith = useCallback((url: string) => {
+    setDraft(url);
+    handleLinkRef.current(url);
+  }, []);
+  // Stable, and not only for tidiness: Toast restarts its dismissal timer
+  // whenever this changes, and during a download the component re-renders ten
+  // times a second. An inline arrow meant the timer was reset before it could
+  // ever fire, so confirmations sat on screen indefinitely.
+  const closeToast = useCallback(() => setToast(null), []);
+
+  const copyLink = useCallback(
+    (url: string) => {
+      writeText(url)
+        .then(() => setToast({ msg: s.queue.copied, kind: "info" }))
+        .catch((e) => setToast({ msg: String(e), kind: "error" }));
+    },
+    [s.queue.copied],
+  );
+
+  // The poster we can work out from the link itself. Available the instant the
+  // link is parsed, which is milliseconds, rather than after the probe, which
+  // is seconds — so the card shows the actual video while it loads the rest.
+  const pendingThumb = useMemo(() => (link ? guessThumb(link.clean) : null), [link]);
+
   const refreshTools = useCallback(() => {
     if (!hasTauri()) return;
-    api.toolStatus(paths).then(setTools).catch(() => setTools([]));
+    api
+      .toolStatus(paths)
+      .then((t) => {
+        setTools(t);
+        writeTools(t);
+        // Only a real answer may send someone to the setup screen. A remembered
+        // one saying "missing" would throw up a wall before we had looked.
+        setChecked(true);
+      })
+      .catch(() => setTools((prev) => prev ?? []));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefs.ytdlpPath, prefs.ffmpegPath]);
 
   useEffect(() => {
-    writeHistory(jobs);
+    handleLinkRef.current = handleLink;
+  });
+
+  // Both writes are debounced, so a window closed a moment after the last
+  // change would drop it. This is the other half of that trade.
+  useEffect(() => {
+    const flush = () => {
+      writeHistory(jobsRef.current);
+      writeDraft(draftRef.current);
+    };
+    window.addEventListener("beforeunload", flush);
+    return () => window.removeEventListener("beforeunload", flush);
+  }, []);
+
+  // Debounced, because `jobs` changes on every progress tick — ten times a
+  // second, per download. Serialising sixty rows and writing them to storage
+  // that often was work nobody asked for, on the same thread that has to keep
+  // the window responsive.
+  useEffect(() => {
+    const t = window.setTimeout(() => writeHistory(jobs), 700);
+    return () => clearTimeout(t);
   }, [jobs]);
 
   useEffect(() => {
-    writeDraft(draft);
+    const t = window.setTimeout(() => writeDraft(draft), 400);
+    return () => clearTimeout(t);
   }, [draft]);
 
   useEffect(() => {
@@ -114,19 +210,33 @@ export default function App() {
   // which looks like a permissions problem, and finding that out only after a
   // download dies is the worst possible moment.
   useEffect(() => {
-    if (tools && !tools.some((t) => t.tool === "yt-dlp" && t.found)) setNeedSetup(true);
-  }, [tools]);
+    if (checked && tools && !tools.some((t) => t.tool === "yt-dlp" && t.found)) setNeedSetup(true);
+  }, [checked, tools]);
 
+  // Deferred and cached. yt-dlp ships every couple of weeks, so asking GitHub
+  // during the busiest second of the app's life buys nothing; the answer from
+  // a few hours ago is exactly as true.
   useEffect(() => {
-    if (!hasTauri() || !tools) return;
-    api
-      .checkYtdlpUpdate(paths, prefs.ytdlpChannel)
-      .then((u) => setUpdate(u.stale ? { current: u.current, latest: u.latest } : null))
-      .catch(() => {
-        // Offline, or GitHub rate-limited us. Not worth bothering anyone about.
-      });
+    if (!hasTauri() || !checked) return;
+    const cached = readUpdate();
+    if (cached) {
+      setUpdate(cached.stale ? { current: cached.current, latest: cached.latest } : null);
+      return;
+    }
+    const t = window.setTimeout(() => {
+      api
+        .checkYtdlpUpdate(paths, prefs.ytdlpChannel)
+        .then((u) => {
+          writeUpdate(u);
+          setUpdate(u.stale ? { current: u.current, latest: u.latest } : null);
+        })
+        .catch(() => {
+          // Offline, or GitHub rate-limited us. Not worth bothering anyone about.
+        });
+    }, 1200);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tools, prefs.ytdlpChannel]);
+  }, [checked, prefs.ytdlpChannel]);
 
   useEffect(() => {
     if (!hasTauri()) return;
@@ -177,6 +287,7 @@ export default function App() {
     setUpdating(true);
     try {
       const st = await api.installTool("ytdlp", prefs.ytdlpChannel);
+      forgetUpdate();
       setUpdate(null);
       refreshTools();
       setToast({ msg: `${s.update.updated} ${st.version ?? ""}`.trim(), kind: "info" });
@@ -191,6 +302,9 @@ export default function App() {
   async function handleLink(raw: string, quick = false) {
     setBusy(true);
     setInfo(null);
+    // Cleared so the placeholder can't wear the previous link's poster while
+    // this one is still being looked up.
+    setLink(null);
     setPlaylistCount(null);
     try {
       const parsed = await api.parseLink(raw);
@@ -305,7 +419,9 @@ export default function App() {
         speed: null,
         eta: null,
         stage: "",
-        status: "",
+        // Replaced by yt-dlp's own words as soon as it has any. Until then this
+        // is the difference between a row that is starting and one that is stuck.
+        status: s.queue.starting,
         path: null,
         error: null,
       },
@@ -389,6 +505,7 @@ export default function App() {
 
   if (needSetup && !setupDone) {
     return (
+      <Suspense fallback={<BootScreen />}>
       <SetupScreen
         tools={tools}
         paths={paths}
@@ -396,11 +513,13 @@ export default function App() {
         onSkip={() => setSetupDone(true)}
         onPickPath={(tool, path) => set(tool === "ytdlp" ? "ytdlpPath" : "ffmpegPath", path)}
       />
+      </Suspense>
     );
   }
 
   if (settingsOpen) {
     return (
+      <Suspense fallback={<BootScreen />}>
       <SettingsScreen
         initialTab={settingsOpen}
         tools={tools}
@@ -411,6 +530,7 @@ export default function App() {
         onPickPath={(tool, path) => set(tool === "ytdlp" ? "ytdlpPath" : "ffmpegPath", path)}
         onClose={() => setSettingsOpen(null)}
       />
+      </Suspense>
     );
   }
 
@@ -479,7 +599,7 @@ export default function App() {
           canQuick={!!resolveDest(prefs, null, osDownloads).dir}
         />
 
-        {busy && <CardSkeleton />}
+        {busy && <CardSkeleton thumb={pendingThumb} source={link?.source} />}
 
         {!busy && info && link && (
           <MediaCard
@@ -528,26 +648,19 @@ export default function App() {
           // this toggle simply never got the same treatment.
           view={prefs.queueView}
           onView={(v) => set("queueView", v)}
-          onAgain={(url) => {
-            setDraft(url);
-            handleLink(url);
-          }}
-          onCopy={(url) => {
-            writeText(url)
-              .then(() => setToast({ msg: s.queue.copied, kind: "info" }))
-              .catch((e) => setToast({ msg: String(e), kind: "error" }));
-          }}
+          onAgain={againWith}
+          onCopy={copyLink}
           // Running jobs survive: clearing the list must not orphan a download
           // that is still writing to disk.
           onClear={() => setJobs((js) => js.filter((j) => j.state === "running"))}
-          onCancel={(id) => api.cancelDownload(id).catch(() => {})}
-          onReveal={(p) => api.reveal(p).catch((e) => setToast({ msg: String(e), kind: "error" }))}
-          onRemove={(id) => setJobs((js) => js.filter((j) => j.id !== id))}
+          onCancel={cancelJob}
+          onReveal={revealJob}
+          onRemove={removeJob}
         />
         </div>
       </main>
 
-      {toast && <Toast message={toast.msg} kind={toast.kind} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.msg} kind={toast.kind} onClose={closeToast} />}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import { useStrings } from "../lib/i18n";
+import { useCloseOnBlur } from "../lib/useCloseOnBlur";
 import {
   GROUPS,
   SEPARATORS,
@@ -43,7 +44,7 @@ export function TemplateBuilder({
 }) {
   const s = useStrings();
   const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
+  const { open, show, hideSoon } = useCloseOnBlur();
   const [manual, setManual] = useState(false);
 
   const tokens = useMemo(() => parseTemplate(value), [value]);
@@ -258,10 +259,10 @@ export function TemplateBuilder({
               spellCheck={false}
               onChange={(e) => {
                 setQuery(e.target.value);
-                setOpen(true);
+                show();
               }}
-              onFocus={() => setOpen(true)}
-              onBlur={() => setTimeout(() => setOpen(false), 140)}
+              onFocus={show}
+              onBlur={hideSoon}
             />
             {open && (
               <div className="tb-menu b-panel">

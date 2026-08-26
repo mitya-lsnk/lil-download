@@ -422,6 +422,11 @@ pub fn start(
     let id = req.id;
     jobs.0.lock().unwrap().insert(id, child);
 
+    // yt-dlp says nothing at all until it has talked to the site, which on a
+    // slow extractor is several seconds of a row sitting at zero. One line now
+    // is the difference between "starting" and "stuck".
+    let _ = app.emit("dl-status", (id, "Спрашиваем сайт…".to_string()));
+
     // stderr on its own thread: yt-dlp writes errors there while stdout is still
     // streaming progress, and a full pipe nobody drains would deadlock it.
     let err_buf = Arc::new(Mutex::new(String::new()));

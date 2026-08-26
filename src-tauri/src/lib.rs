@@ -7,7 +7,26 @@ mod urlx;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use tauri::async_runtime::spawn_blocking;
 use tauri::Manager;
+
+/// Run blocking work off the main thread.
+///
+/// Tauri executes a non-`async` command on the main thread, which is the UI
+/// thread — so `probe_link`, which waits several seconds on yt-dlp talking to a
+/// website, froze the entire window for exactly as long as it took. Pasting a
+/// link and pressing the button looked like the app had hung, because it had.
+///
+/// `async` alone would move the work to the async runtime, where a multi-second
+/// blocking call starves every other task on that thread instead. The blocking
+/// pool is the right home for "waits on a child process".
+async fn off_thread<T, F>(f: F) -> Result<T, String>
+where
+    F: FnOnce() -> T + Send + 'static,
+    T: Send + 'static,
+{
+    spawn_blocking(f).await.map_err(|e| format!("задача сорвалась: {e}"))
+}
 
 /// Paths the user set in Settings, passed down from the frontend on every call.
 ///
@@ -22,13 +41,21 @@ pub struct ToolPaths {
     cookies: Option<String>,
 }
 
+/// Locating a tool means running it to read its version — two child processes,
+/// and on an unlucky machine a couple of seconds of them.
 #[tauri::command]
-fn tool_status(app: tauri::AppHandle, paths: Option<ToolPaths>) -> Vec<bins::ToolStatus> {
+async fn tool_status(
+    app: tauri::AppHandle,
+    paths: Option<ToolPaths>,
+) -> Result<Vec<bins::ToolStatus>, String> {
     let p = paths.unwrap_or_default();
-    vec![
-        bins::locate(&app, bins::Tool::Ytdlp, p.ytdlp.as_deref()),
-        bins::locate(&app, bins::Tool::Ffmpeg, p.ffmpeg.as_deref()),
-    ]
+    off_thread(move || {
+        vec![
+            bins::locate(&app, bins::Tool::Ytdlp, p.ytdlp.as_deref()),
+            bins::locate(&app, bins::Tool::Ffmpeg, p.ffmpeg.as_deref()),
+        ]
+    })
+    .await
 }
 
 /// Is the yt-dlp we'd actually use out of date?
@@ -59,18 +86,13 @@ fn parse_link(input: String) -> Option<urlx::ParsedLink> {
 
 /// Can we read this browser's cookies, and if not, what fixes it.
 #[tauri::command]
-fn cookie_access(browser: String) -> cookies::CookieStatus {
-    cookies::check(&browser)
+async fn cookie_access(browser: String) -> Result<cookies::CookieStatus, String> {
+    off_thread(move || cookies::check(&browser)).await
 }
 
 #[tauri::command]
 fn open_privacy_settings() -> Result<(), String> {
     cookies::open_privacy_settings()
-}
-
-#[tauri::command]
-fn is_collection(url: String) -> bool {
-    urlx::is_collection_url(&url)
 }
 
 fn resolve(
@@ -85,31 +107,49 @@ fn resolve(
     Ok((yt, f.path.map(PathBuf::from)))
 }
 
+/// The slow one: a full yt-dlp extractor run against the site, seconds at best.
 #[tauri::command]
-fn probe_link(
+async fn probe_link(
     app: tauri::AppHandle,
     url: String,
     paths: Option<ToolPaths>,
 ) -> Result<probe::MediaInfo, String> {
     let p = paths.unwrap_or_default();
-    let (yt, _) = resolve(&app, &p)?;
-    probe::probe(&yt, &url, p.cookies.as_deref())
+    off_thread(move || {
+        let (yt, _) = resolve(&app, &p)?;
+        probe::probe(&yt, &url, p.cookies.as_deref())
+    })
+    .await?
 }
 
 #[tauri::command]
-fn playlist_size(app: tauri::AppHandle, url: String, paths: Option<ToolPaths>) -> Option<u64> {
-    let p = paths.unwrap_or_default();
-    let (yt, _) = resolve(&app, &p).ok()?;
-    probe::playlist_size(&yt, &url, p.cookies.as_deref())
-}
-
-#[tauri::command]
-fn start_download(
+async fn playlist_size(
     app: tauri::AppHandle,
-    mut req: dl::DownloadRequest,
+    url: String,
+    paths: Option<ToolPaths>,
+) -> Option<u64> {
+    let p = paths.unwrap_or_default();
+    off_thread(move || {
+        let (yt, _) = resolve(&app, &p).ok()?;
+        probe::playlist_size(&yt, &url, p.cookies.as_deref())
+    })
+    .await
+    .ok()
+    .flatten()
+}
+
+/// Also off the main thread: before anything is spawned this locates both
+/// tools, which runs both of them to read their versions. That is the pause
+/// between pressing Download and the row starting to move.
+#[tauri::command]
+async fn start_download(
+    app: tauri::AppHandle,
+    req: dl::DownloadRequest,
     paths: Option<ToolPaths>,
 ) -> Result<(), String> {
+    let mut req = req;
     let p = paths.unwrap_or_default();
+    off_thread(move || {
     let (yt, ff) = resolve(&app, &p)?;
     // Checked here rather than left to yt-dlp: an empty or mangled link there
     // comes back as a parser complaint about whatever argument followed it.
@@ -117,8 +157,10 @@ fn start_download(
         return Err("ссылка пустая или не похожа на ссылку".into());
     }
     req.cookies = req.cookies.or_else(|| p.cookies.clone());
-    let jobs = app.state::<Arc<dl::Jobs>>().inner().clone();
-    dl::start(app.clone(), jobs, yt, ff, req)
+        let jobs = app.state::<Arc<dl::Jobs>>().inner().clone();
+        dl::start(app.clone(), jobs, yt, ff, req)
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -178,7 +220,6 @@ pub fn run() {
             install_tool,
             check_ytdlp_update,
             parse_link,
-            is_collection,
             cookie_access,
             open_privacy_settings,
             probe_link,

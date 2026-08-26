@@ -118,7 +118,7 @@ export function MediaCard({
 
       <div className="card-opts">
         <div className="opt-col">
-        <div className="opt">
+        <div className="opt" title={s.opts.trimHint}>
           <span className="opt-label">
             <Icon name="trim" size={14} /> {s.opts.trim}
           </span>

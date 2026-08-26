@@ -188,9 +188,7 @@ pub fn humanize(stderr: &str) -> String {
     } else {
         // Nothing matched: show yt-dlp's own last line rather than swallowing it.
         return stderr
-            .lines()
-            .filter(|l| !l.trim().is_empty())
-            .next_back()
+            .lines().rfind(|l| !l.trim().is_empty())
             .unwrap_or("yt-dlp не смог разобрать ссылку")
             .trim()
             .trim_start_matches("ERROR:")

@@ -208,20 +208,6 @@ pub fn parse_link(input: &str) -> Option<ParsedLink> {
     })
 }
 
-/// Does this link point at a playlist/channel *as such*, rather than at one
-/// video that happens to sit in one? Those are the only links where offering
-/// "download all" makes sense on its own.
-pub fn is_collection_url(input: &str) -> bool {
-    let Some(u) = Url::parse(input).ok() else {
-        return false;
-    };
-    let path = u.path().to_ascii_lowercase();
-    let has_v = u.query_pairs().any(|(k, _)| k == "v");
-    if path.starts_with("/playlist") && !has_v {
-        return true;
-    }
-    path.contains("/channel/") || path.contains("/@") || path.ends_with("/videos")
-}
 
 #[cfg(test)]
 mod tests {
@@ -285,12 +271,6 @@ mod tests {
         assert_eq!(p.original, "youtube.com/watch?v=abc");
     }
 
-    #[test]
-    fn a_bare_playlist_link_is_a_collection_but_a_video_in_one_is_not() {
-        assert!(is_collection_url("https://www.youtube.com/playlist?list=PL999"));
-        assert!(is_collection_url("https://www.youtube.com/@channel"));
-        assert!(!is_collection_url("https://www.youtube.com/watch?v=abc&list=PL999"));
-    }
 
     #[test]
     fn junk_is_rejected_rather_than_guessed_at() {

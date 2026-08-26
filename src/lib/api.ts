@@ -76,7 +76,6 @@ export const api = {
   checkYtdlpUpdate: (paths: ToolPaths, channel: Channel = "stable") =>
     call<UpdateInfo>("check_ytdlp_update", { paths, channel }),
   parseLink: (input: string) => call<ParsedLink | null>("parse_link", { input }),
-  isCollection: (url: string) => call<boolean>("is_collection", { url }),
   cookieAccess: (browser: string) => call<CookieStatus>("cookie_access", { browser }),
   openPrivacySettings: () => call<void>("open_privacy_settings"),
   probeLink: (url: string, paths: ToolPaths) => call<MediaInfo>("probe_link", { url, paths }),

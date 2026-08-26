@@ -79,21 +79,6 @@
   outline: none;
   background: var(--surface);
 }
-.linkbar-offer {
-  align-self: flex-start;
-  border: var(--bd);
-  border-style: dashed;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-.linkbar-offer:hover {
-  color: var(--ink);
-  border-style: solid;
-}
 
 /* ---------- media card ---------- */
 
@@ -168,21 +153,7 @@
   font-size: 11px;
   margin-left: auto;
 }
-.note-warn {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-.note-quiet {
-  color: var(--muted);
-  font-size: 11px;
-}
 
-/* presets */
-.card-presets {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
-}
 .preset {
   display: flex;
   flex-direction: column;
@@ -206,16 +177,6 @@
 .preset.on {
   background: var(--ink);
   color: var(--surface);
-}
-.preset-name {
-  font-weight: 700;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.preset-note {
-  font-size: 10px;
-  opacity: 0.7;
 }
 
 /* destination */
@@ -535,9 +496,6 @@
   font-size: 11px;
 }
 
-.card-arrow {
-  color: var(--muted);
-}
 
 /* ---------- header widgets ----------
  * Ported from lil view so the skin picker, mode toggle and language chip are
@@ -709,6 +667,15 @@
 .skel-card {
   pointer-events: none;
 }
+/* A real poster inside the placeholder, when the link alone was enough to know
+   it. Sized like the skeleton it replaces so nothing shifts when the rest
+   arrives. */
+.skel-card .card-thumb {
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  flex: none;
+  object-fit: cover;
+}
 
 /* ---------- settings ---------- */
 
@@ -764,11 +731,6 @@
 
 /* ---------- cookies ---------- */
 
-.tools-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
 .ck {
   position: relative;
   display: flex;
@@ -825,12 +787,6 @@
   background: var(--ink);
   color: var(--surface);
 }
-.ck-note {
-  font-size: 10px;
-  color: var(--muted);
-  max-width: 420px;
-  line-height: 1.4;
-}
 
 .setup-slow {
   font-size: 10px;
@@ -847,7 +803,6 @@
  * the spot. An SVG box is square, so this now spins where it stands. */
 
 .b-btn svg,
-.tb-btn svg,
 .ck-btn svg,
 .pp-btn svg,
 .dest-path svg,
@@ -872,14 +827,6 @@
 .head .ck-menu {
   left: auto;
   right: 0;
-}
-.ck-note {
-  margin: 6px 4px 2px;
-  padding: 6px 8px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 10px;
-  line-height: 1.45;
 }
 
 /* ---------- per-download options ---------- */
@@ -1997,4 +1944,38 @@ input[type="checkbox"]:focus-visible {
 .lim-unit.on {
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+
+/* ---------- waiting, honestly ---------- */
+
+/* The card placeholder already shimmers (see `.skel` above). This is the same
+ * idea for a queue row that has a process but not yet a byte: something real is
+ * happening off-screen and the only truthful thing to draw is "not yet". */
+/* The bar before the first byte: moving, but making no claim about progress. */
+.job.warmup .job-fill.indet {
+  opacity: 0.75;
+}
+.job-thumb--none {
+  display: block;
+  background: var(--surface-2);
+}
+.job.warmup .job-thumb--none {
+  animation: pulse 1.4s var(--ease) infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Respect the system setting. Everything above is decoration on top of state
+ * that is already legible without it. */
+@media (prefers-reduced-motion: reduce) {
+  .skel::after,
+  .job.warmup .job-thumb--none,
+  .head-work::after,
+  .spin {
+    animation: none;
+  }
 }
