@@ -39,8 +39,18 @@ jobs:
           # queued for two hours and never started. A universal binary built on
           # Apple Silicon covers Intel Macs anyway, and gives their owners one
           # download instead of a choice they shouldn't have to make.
+          #
+          # `macos-latest`, not a pinned image, and that part matters: on
+          # `macos-14` bundle_dmg.sh finishes in eight seconds and ships a dmg
+          # with no `.DS_Store` at all, so the installer window opens at Finder's
+          # default size with the icons wherever it likes. The same script on the
+          # current image takes ~40s and writes the window size and icon
+          # positions. lil edit and lil view already build on `macos-latest` and
+          # get a styled window; pinning this one was the reason all three looked
+          # different. (Only the layout survives — the background picture is
+          # ignored everywhere, see CHANGELOG.)
           - name: macos
-            os: macos-14
+            os: macos-latest
             targets: aarch64-apple-darwin,x86_64-apple-darwin
             args: --target universal-apple-darwin
             files: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
