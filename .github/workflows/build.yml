@@ -40,15 +40,11 @@ jobs:
           # Apple Silicon covers Intel Macs anyway, and gives their owners one
           # download instead of a choice they shouldn't have to make.
           #
-          # `macos-latest`, not a pinned image, and that part matters: on
-          # `macos-14` bundle_dmg.sh finishes in eight seconds and ships a dmg
-          # with no `.DS_Store` at all, so the installer window opens at Finder's
-          # default size with the icons wherever it likes. The same script on the
-          # current image takes ~40s and writes the window size and icon
-          # positions. lil edit and lil view already build on `macos-latest` and
-          # get a styled window; pinning this one was the reason all three looked
-          # different. (Only the layout survives — the background picture is
-          # ignored everywhere, see CHANGELOG.)
+          # `macos-latest` to match lil edit and lil view — not because the image
+          # matters here. It was the first suspect for the unstyled installer
+          # window and it was the wrong one: the build moved to macos-26 and the
+          # dmg came out just as bare. The real cause was an environment
+          # variable, see the build step below.
           - name: macos
             os: macos-latest
             targets: aarch64-apple-darwin,x86_64-apple-darwin
@@ -105,12 +101,22 @@ jobs:
           npm run build
           cargo test --manifest-path src-tauri/Cargo.toml --lib
 
-      # `--verbose` on the Mac leg only: without it Tauri swallows everything
-      # bundle_dmg.sh prints, and that script is where the installer window gets
-      # its size and icon positions. Temporary — here to find out why the dmg
-      # comes out without a `.DS_Store`.
       - name: build
-        run: npm run tauri build -- ${{ matrix.args }} ${{ matrix.name == 'macos' && '--verbose' || '' }}
+        env:
+          # Without this the installer window has no layout at all: on CI the
+          # bundler quietly appends `--skip-jenkins` to bundle_dmg.sh, which
+          # skips the AppleScript that writes the window size and icon positions,
+          # and the dmg ships with no `.DS_Store`. The window then opens at
+          # Finder's default size with the icons wherever they land — which is
+          # exactly the "the installers all look different" complaint.
+          #
+          # Found by running the Mac leg with `--verbose`, the only way to see
+          # bundle_dmg.sh's own output; the flag and this escape hatch sit
+          # side by side in the CLI binary's string table. tauri-action sets it
+          # for us, which is why lil edit and lil view were styled and this one
+          # was not, on the same runner image with the same CLI version.
+          TAURI_BUNDLER_DMG_IGNORE_CI: "true"
+        run: npm run tauri build -- ${{ matrix.args }}
 
       - uses: actions/upload-artifact@v4
         with:
