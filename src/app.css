@@ -2148,3 +2148,52 @@ input[type="checkbox"]:focus-visible {
   align-items: stretch;
   gap: 10px;
 }
+
+/* ------------------------------------------- appearance panel (shared) */
+
+/* One container, one set of paddings, one label style — identical in lil edit,
+   lil view and lil download, because the markup above it is now literally the
+   same component. The previous round copied the block into three files and it
+   drifted in three ways within a day. */
+.ap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 18px;
+  background: var(--surface);
+  border: var(--bd);
+  border-radius: var(--radius, var(--radius-sm));
+  box-shadow: var(--shadow-sm);
+}
+.ap-h {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--ink);
+}
+.ap-lead {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.ap-lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ap .mode-choice {
+  align-self: flex-start;
+}
+.ap .sp {
+  margin-top: 0;
+}

@@ -17,6 +17,7 @@ either side of it, which is a smooth near-black gradient, so no seam shows.
     python tools/make-icon.py
     npx tauri icon /tmp/lildownload-icon-1024.png
 """
+import colorsys
 import sys
 from collections import Counter, deque
 
@@ -26,8 +27,16 @@ SRC = sys.argv[1] if len(sys.argv) > 1 else "/tmp/liledit.iconset/icon_512x512@2
 OUT = sys.argv[2] if len(sys.argv) > 2 else "/tmp/lildownload-icon-1024.png"
 
 # YouTube is the source this app will see most, and red is the one colour nobody
-# has to be taught to associate with it.
-RED = (255, 59, 48)
+# has to be taught to associate with it. Given as a hue, not a colour: the
+# recolour below rotates hue and keeps each pixel's own lightness, which is what
+# carries the gradient across. A flat target colour scaled by brightness keeps
+# the ratio and loses the feel.
+HUE = 8.0
+
+# The pictogram is drawn, not recoloured, so it needs the colour spelled out —
+# the same hue at the ink's own base lightness, so it sits at the same weight as
+# the fox beside it rather than jumping forward.
+RED = tuple(round(c * 255) for c in colorsys.hls_to_rgb(HUE / 360, 0.72, 0.46))
 
 im = Image.open(SRC).convert("RGBA")
 W, H = im.size
@@ -102,17 +111,24 @@ for y in range(max(0, gy0 - PAD), min(H, gy1 + PAD + 1)):
                 round(left[c] * (1 - t) + right[c] * t) for c in range(4)
             )
 
-# --- repaint the fox red ------------------------------------------------------
+# --- repaint the fox ----------------------------------------------------------
 # A wider test than `lavender()` on purpose: the strict one misses the soft
 # fringe, and a leftover violet halo around a red fox looks like a mistake.
+#
+# Hue rotation, keeping each pixel's lightness and saturation. The ink is not
+# one flat colour — it runs from L 0.77 at the top of the fox to L 0.65 at the
+# bottom, and that fall is most of what makes the icon look drawn rather than
+# stamped. Scaling a flat red by brightness kept the ratio and flattened the
+# look; anything lighter than the base clamped away entirely.
 recoloured = 0
 for y in range(H):
     for x in range(W):
         r, g, b, a = op[x, y]
         if a < 20 or b <= r + 4:
             continue
-        t = min(1.0, max(r, g, b) / ink_peak)
-        op[x, y] = (round(RED[0] * t), round(RED[1] * t), round(RED[2] * t), a)
+        _, l, sat = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+        nr, ng, nb = colorsys.hls_to_rgb(HUE / 360, l, sat)
+        op[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
         recoloured += 1
 print("recoloured", recoloured, "px")
 

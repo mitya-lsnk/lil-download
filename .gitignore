@@ -4,3 +4,7 @@ src-tauri/target
 src-tauri/target.noindex
 src-tauri/gen/schemas
 .DS_Store
+
+# `tauri icon` also emits mobile sets; this is a desktop app.
+src-tauri/icons/android
+src-tauri/icons/ios

@@ -5,12 +5,10 @@ import { useStrings } from "../lib/i18n";
 import { ratePerSecond, type Prefs, type RateUnit } from "../lib/settings";
 import { bytes } from "../lib/format";
 import { FlagsInput } from "./FlagsInput";
+import { AppearancePanel } from "./AppearancePanel";
 import { Icon } from "./Icon";
-import { ModeChoice } from "./ModeToggle";
 import { PresetEditor } from "./PresetEditor";
 import { UpdatePanel } from "./UpdatePanel";
-import { SkinCards } from "./SkinCards";
-import { SkinPreview } from "./SkinPreview";
 import { TemplateBuilder } from "./TemplateBuilder";
 import { ToolsPanel } from "./ToolsPanel";
 
@@ -167,25 +165,15 @@ export function SettingsScreen({
           )}
 
           {tab === "look" && (
-            <section className="settings-block">
-              <div className="settings-field">
-                <span>{s.settings.theme}</span>
-                <ModeChoice label={s.settings.theme} />
-              </div>
-              <div className="settings-field">
-                <span>{s.settings.skin}</span>
-                <SkinCards />
-              </div>
-              <SkinPreview
-                name="lil download"
-                words={{
-                  primary: s.card.download,
-                  secondary: s.setup.choose("yt-dlp"),
-                  accent: s.update.update,
-                  check: s.opts.sponsorblock,
-                }}
-              />
-            </section>
+            <AppearancePanel
+              name="lil download"
+              words={{
+                primary: s.card.download,
+                secondary: s.setup.choose("yt-dlp"),
+                accent: s.update.update,
+                check: s.opts.sponsorblock,
+              }}
+            />
           )}
         </div>
       </main>
