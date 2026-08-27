@@ -127,8 +127,11 @@ export const RU = {
       tech: "лучшее видео + лучший звук, склейка без перекодирования",
     },
     compatible: {
-      name: "Откроется везде",
-      note: "mp4 — плеер, телефон, монтаж",
+      // The name is what sits on the button, where a whole sentence is too
+      // much; the promise it used to make lives in the note underneath, which
+      // is where the menu explains itself anyway.
+      name: "Универсальный",
+      note: "откроется везде: плеер, телефон, телевизор, монтажка",
       tech: "H.264 до 1080p + AAC в mp4",
     },
     audio: { name: "Только звук", note: "без картинки", tech: "лучшая звуковая дорожка" },
@@ -384,8 +387,8 @@ export const EN: Dict = {
       tech: "best video + best audio, merged without re-encoding",
     },
     compatible: {
-      name: "Opens anywhere",
-      note: "mp4 — player, phone, editor",
+      name: "Universal",
+      note: "opens anywhere: player, phone, TV, editing suite",
       tech: "H.264 up to 1080p + AAC in mp4",
     },
     audio: { name: "Audio only", note: "no picture", tech: "best audio track" },
