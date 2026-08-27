@@ -105,8 +105,12 @@ jobs:
           npm run build
           cargo test --manifest-path src-tauri/Cargo.toml --lib
 
+      # `--verbose` on the Mac leg only: without it Tauri swallows everything
+      # bundle_dmg.sh prints, and that script is where the installer window gets
+      # its size and icon positions. Temporary — here to find out why the dmg
+      # comes out without a `.DS_Store`.
       - name: build
-        run: npm run tauri build -- ${{ matrix.args }}
+        run: npm run tauri build -- ${{ matrix.args }} ${{ matrix.name == 'macos' && '--verbose' || '' }}
 
       - uses: actions/upload-artifact@v4
         with:
