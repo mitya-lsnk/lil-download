@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 import { ModeChoice } from "./ModeToggle";
 import { PresetEditor } from "./PresetEditor";
 import { UpdatePanel } from "./UpdatePanel";
-import { SkinPicker } from "./SkinPicker";
+import { SkinCards } from "./SkinCards";
 import { SkinPreview } from "./SkinPreview";
 import { TemplateBuilder } from "./TemplateBuilder";
 import { ToolsPanel } from "./ToolsPanel";
@@ -174,7 +174,7 @@ export function SettingsScreen({
               </div>
               <div className="settings-field">
                 <span>{s.settings.skin}</span>
-                <SkinPicker />
+                <SkinCards />
               </div>
               <SkinPreview
                 name="lil download"
