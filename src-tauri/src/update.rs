@@ -1,11 +1,10 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src-tauri/src/update.rs, then run ~/lil-kit/sync.sh
 // Lightweight update check. Ask GitHub for the latest published release, compare
 // its tag to the running build, and hand the frontend everything it needs to
 // offer a download. Nothing is installed here — the app ships unsigned, so the
 // user downloads and installs the new build themselves.
 
 use serde::Serialize;
-
-const REPO: &str = "mitya-lsnk/lil-download";
 
 #[derive(Serialize)]
 pub struct UpdateInfo {
@@ -74,11 +73,13 @@ fn pick_asset(assets: &[serde_json::Value]) -> Option<String> {
 pub async fn check_update() -> Result<UpdateInfo, String> {
     let current = env!("CARGO_PKG_VERSION").to_string();
     let client = reqwest::Client::builder()
-        .user_agent(format!("lil-download/{current}"))
+        .user_agent(format!("{}/{current}", env!("CARGO_PKG_NAME")))
         .build()
         .map_err(|e| e.to_string())?;
 
-    let api = format!("https://api.github.com/repos/{REPO}/releases/latest");
+    // "owner/name" comes from `repository` in Cargo.toml (see menu.rs).
+    let repo = crate::menu::github_repo().ok_or("no GitHub repository in Cargo.toml")?;
+    let api = format!("https://api.github.com/repos/{repo}/releases/latest");
     let resp = client
         .get(&api)
         .header("Accept", "application/vnd.github+json")
@@ -112,7 +113,7 @@ pub async fn check_update() -> Result<UpdateInfo, String> {
         .get("html_url")
         .and_then(|v| v.as_str())
         .map(String::from)
-        .unwrap_or_else(|| format!("https://github.com/{REPO}/releases"));
+        .unwrap_or_else(|| format!("https://github.com/{repo}/releases"));
     let asset = json
         .get("assets")
         .and_then(|v| v.as_array())

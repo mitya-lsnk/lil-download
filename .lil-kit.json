@@ -1,0 +1,14 @@
+{
+  "src-tauri/src/menu.rs": "872ad500aded",
+  "src-tauri/src/update.rs": "31612db50417",
+  "src/components/Icon.tsx": "4368f1cf9883",
+  "src/components/UpdatePanel.tsx": "d25185c5a14d",
+  "src/dark.css": "2808e930487d",
+  "src/lib/i18n.tsx": "5c53f1545856",
+  "src/lib/lilapp.ts": "d95302626ede",
+  "src/lib/menu.ts": "f5742041d444",
+  "src/lib/skin.tsx": "507cd3cc2ca2",
+  "src/lib/tauri.ts": "3c2eab274158",
+  "src/lib/update.ts": "e8d4d7702889",
+  "src/skins.css": "8c76b265a031"
+}

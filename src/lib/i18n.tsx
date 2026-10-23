@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/lib/i18n.tsx, then run ~/lil-kit/sync.sh
 import {
   createContext,
   useContext,
@@ -6,10 +7,11 @@ import {
   type ReactNode,
 } from "react";
 import { DICTS, type Dict } from "./strings";
+import { LIL } from "./lilapp";
 
 export type Lang = "ru" | "en";
 
-const STORAGE_KEY = "lildownload.lang";
+const STORAGE_KEY = `${LIL.store}.lang`;
 
 function isLang(v: unknown): v is Lang {
   return v === "ru" || v === "en";

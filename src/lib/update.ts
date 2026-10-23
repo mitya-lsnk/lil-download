@@ -1,5 +1,7 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/lib/update.ts, then run ~/lil-kit/sync.sh
 import { invoke } from "@tauri-apps/api/core";
 import { hasTauri } from "./tauri";
+import { LIL } from "./lilapp";
 
 /** What the backend tells us about the latest GitHub release. */
 export interface UpdateInfo {
@@ -26,6 +28,33 @@ export async function checkUpdate(): Promise<UpdateInfo> {
 }
 
 // ---------------------------------------------------------------------------
+// "Check for Updates…" from the menu bar
+//
+// The panel that runs the check may not be on screen yet (settings closed) or
+// may already be open, so the request is both remembered and announced: a panel
+// that mounts later picks it up, one already mounted hears it.
+// ---------------------------------------------------------------------------
+
+const REQUEST_EVENT = "lil-update-check";
+let requested = false;
+
+export function requestUpdateCheck(): void {
+  requested = true;
+  window.dispatchEvent(new Event(REQUEST_EVENT));
+}
+
+/** Run `check` for a pending or future request; returns the unsubscribe. */
+export function onUpdateRequest(check: () => void): () => void {
+  const take = () => {
+    requested = false;
+    check();
+  };
+  if (requested) take();
+  window.addEventListener(REQUEST_EVENT, take);
+  return () => window.removeEventListener(REQUEST_EVENT, take);
+}
+
+// ---------------------------------------------------------------------------
 // "Check on launch" preference
 //
 // The startup check is the only connection the app makes on its own, so it gets
@@ -33,7 +62,7 @@ export async function checkUpdate(): Promise<UpdateInfo> {
 // network connection unless the user asks it to.
 // ---------------------------------------------------------------------------
 
-const AUTO_KEY = "lildownload.update.auto";
+const AUTO_KEY = `${LIL.store}.update.auto`;
 
 export function autoCheckEnabled(): boolean {
   try {

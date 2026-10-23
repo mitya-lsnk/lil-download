@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/lib/skin.tsx, then run ~/lil-kit/sync.sh
 import {
   createContext,
   useContext,
@@ -5,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { LIL } from "./lilapp";
 
 export type Skin = "brutal" | "riso" | "te" | "studio";
 export type Mode = "light" | "dark";
@@ -18,6 +20,7 @@ export interface SkinMeta {
 // Names are localized — see the `skins` block in strings.tsx, keyed by id.
 // Here we only keep what doesn't translate: the id and the swatch colors.
 // studio is the default — listed first, and the fallback when nothing is stored.
+// An app that offers only studio (lil clean) simply shows no skin picker.
 export const SKINS: SkinMeta[] = [
   { id: "studio", swatch: ["#ff3d0d", "#2fbf4c"] },
   { id: "brutal", swatch: ["#ffde00", "#111111"] },
@@ -25,8 +28,8 @@ export const SKINS: SkinMeta[] = [
   { id: "te", swatch: ["#fa4b00", "#15150f"] },
 ];
 
-const STORAGE_KEY = "lildownload.skin";
-const MODE_KEY = "lildownload.mode";
+const STORAGE_KEY = `${LIL.store}.skin`;
+const MODE_KEY = `${LIL.store}.mode`;
 
 function isSkin(v: unknown): v is Skin {
   return v === "brutal" || v === "riso" || v === "te" || v === "studio";

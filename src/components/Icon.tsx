@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/Icon.tsx, then run ~/lil-kit/sync.sh
 import {
   Check,
   ChevronDown,
@@ -9,6 +10,16 @@ import {
   Cookie,
   Copy,
   Crop,
+  Boxes,
+  Clock,
+  FileQuestion,
+  History,
+  Package,
+  Search,
+  ShieldCheck,
+  Sparkle,
+  Star,
+  Wrench,
   Download,
   Ellipsis,
   Eraser,
@@ -55,10 +66,10 @@ import {
  *
  * Two decisions worth writing down. First, icons are a *named set* rather than
  * direct imports at each call site: one file decides what "stop" looks like, so
- * lil edit, lil view and lil download stay in step — the thing the old unicode
- * glyphs were kept consistent by hand, now enforced by the type. The file is
- * identical in all three repositories; unused entries cost nothing, since the
- * bundler drops them.
+ * every lil app stays in step — the thing the old unicode glyphs were kept
+ * consistent by hand, now enforced by the type. The file lives in ~/lil-kit and
+ * is copied verbatim into each app; an app-specific icon is added here, under
+ * that app's heading, never in the app's own copy.
  *
  * Second, they are drawn with **square caps and mitred joins at 2.5**, not
  * Lucide's default rounded 2. The suite's panels have 3 px square borders and
@@ -111,6 +122,19 @@ const SET = {
   rotateLeft: RotateCcw,
   rotateRight: RotateCw,
   edit: PenLine,
+
+  // lil clean
+  junk: Package,
+  cache: RefreshCw,
+  orphan: FileQuestion,
+  stale: Clock,
+  snapshot: History,
+  protect: ShieldCheck,
+  tools: Wrench,
+  ask: Search,
+  nested: Boxes,
+  recommend: Sparkle,
+  star: Star,
 
   // lil edit
   crop: Crop,

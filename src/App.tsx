@@ -13,7 +13,9 @@ import {
   usePrefs,
   type Preset,
 } from "./lib/settings";
-import { useStrings } from "./lib/i18n";
+import { useLang, useStrings } from "./lib/i18n";
+import { useLilMenu } from "./lib/menu";
+import { requestUpdateCheck } from "./lib/update";
 import { readDraft, readHistory, writeDraft, writeHistory } from "./lib/history";
 import { forgetUpdate, readTools, readUpdate, writeTools, writeUpdate } from "./lib/cache";
 import { guessThumb } from "./lib/thumb";
@@ -42,6 +44,7 @@ import { Toast } from "./components/Toast";
 
 export default function App() {
   const s = useStrings();
+  const { lang } = useLang();
   const { prefs, set, setRule } = usePrefs();
 
   // Last launch's answer, shown on the first frame. Locating the tools means
@@ -56,6 +59,22 @@ export default function App() {
   /** Has a live tool check come back yet, as opposed to the remembered one. */
   const [checked, setChecked] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState<SettingsTab | null>(null);
+  // Bumped on every open so a menu click while settings is already up still lands
+  // on the requested tab (SettingsScreen reads initialTab only when it mounts).
+  const [settingsKey, setSettingsKey] = useState(0);
+  const openSettings = (tab: SettingsTab) => {
+    setSettingsOpen(tab);
+    setSettingsKey((n) => n + 1);
+  };
+  // Native menu bar (lil-kit): Settings… opens the first tab, Check for Updates…
+  // the About tab and runs the check there.
+  useLilMenu(lang, {
+    settings: () => openSettings("tools"),
+    updates: () => {
+      requestUpdateCheck();
+      openSettings("about");
+    },
+  });
   const [osDownloads, setOsDownloads] = useState<string | null>(null);
 
   const [link, setLink] = useState<ParsedLink | null>(null);
@@ -534,6 +553,7 @@ export default function App() {
     return (
       <Suspense fallback={<BootScreen />}>
       <SettingsScreen
+        key={settingsKey}
         initialTab={settingsOpen}
         tools={tools}
         paths={paths}

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/UpdatePanel.tsx, then run ~/lil-kit/sync.sh
+import { useEffect, useRef, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { useStrings } from "../lib/i18n";
@@ -6,6 +7,7 @@ import { hasTauri } from "../lib/tauri";
 import {
   autoCheckEnabled,
   checkUpdate,
+  onUpdateRequest,
   safeReleaseUrl,
   setAutoCheck,
   type UpdateInfo,
@@ -21,7 +23,9 @@ import { Icon } from "./Icon";
  * own checks happen.
  *
  * The launch check has an off switch because it is the only connection the app
- * makes on its own. Off means the app opens no connection unless asked.
+ * makes on its own. Off means the app opens no connection unless asked. The menu
+ * bar's "Check for Updates…" counts as asking: open this panel and call
+ * requestUpdateCheck() (lib/update.ts).
  */
 export function UpdatePanel({ version }: { version: string }) {
   const s = useStrings();
@@ -56,6 +60,11 @@ export function UpdatePanel({ version }: { version: string }) {
       setBusy(false);
     }
   }
+
+  // Menu bar "Check for Updates…": the latest `run` without re-subscribing.
+  const runRef = useRef(run);
+  runRef.current = run;
+  useEffect(() => onUpdateRequest(() => void runRef.current()), []);
 
   const link = safeReleaseUrl(info?.asset) ?? safeReleaseUrl(info?.url);
 

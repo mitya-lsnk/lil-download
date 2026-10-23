@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/lib/tauri.ts, then run ~/lil-kit/sync.sh
 import { invoke } from "@tauri-apps/api/core";
 
 /**

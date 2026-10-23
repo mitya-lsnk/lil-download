@@ -1,6 +1,7 @@
 mod bins;
 mod cookies;
 mod dl;
+mod menu;
 mod probe;
 mod update;
 mod urlx;
@@ -256,7 +257,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Arc::new(dl::Jobs::default()))
+        .on_menu_event(menu::on_event)
         .invoke_handler(tauri::generate_handler![
+            menu::lil_menu,
             update::check_update,
             tool_status,
             install_tool,
