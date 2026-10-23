@@ -5,6 +5,7 @@ import { useStrings } from "../lib/i18n";
 import { ratePerSecond, type Prefs, type RateUnit } from "../lib/settings";
 import { bytes } from "../lib/format";
 import { FlagsInput } from "./FlagsInput";
+import { AboutPanel } from "./AboutPanel";
 import { AppearancePanel } from "./AppearancePanel";
 import { Icon } from "./Icon";
 import { PresetEditor } from "./PresetEditor";
@@ -159,9 +160,9 @@ export function SettingsScreen({
           )}
 
           {tab === "about" && (
-            <section className="settings-block">
+            <AboutPanel about={s.settings.aboutText}>
               <UpdatePanel version={__APP_VERSION__} />
-            </section>
+            </AboutPanel>
           )}
 
           {tab === "look" && (

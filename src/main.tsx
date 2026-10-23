@@ -7,6 +7,9 @@ import "./theme.css";
 // build did) leaves both pickers switching an attribute nothing listens to.
 import "./skins.css";
 import "./dark.css";
+// Settings parts shared across the lil apps (lil-kit); the app's own sheet comes
+// after so it can still override a detail.
+import "./lil-settings.css";
 import "./app.css";
 import App from "./App";
 import { LangProvider } from "./lib/i18n";

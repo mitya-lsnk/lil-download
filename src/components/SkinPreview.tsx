@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/SkinPreview.tsx, then run ~/lil-kit/sync.sh
 import { useState } from "react";
 
 import { Icon } from "./Icon";

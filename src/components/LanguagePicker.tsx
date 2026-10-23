@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/LanguagePicker.tsx, then run ~/lil-kit/sync.sh
 import { useLang } from "../lib/i18n";
 
 /** Compact RU/EN toggle for the header — mirrors the light/dark switch. */

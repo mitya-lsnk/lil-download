@@ -1,0 +1,318 @@
+/* lil-kit: shared file — edit ~/lil-kit/web/src/lil-settings.css, then run ~/lil-kit/sync.sh */
+/* Settings parts shared by every Tauri lil app: the appearance panel (skin cards,
+   light/dark, preview), the update panel and the About tab. Taken from lil download,
+   the reference. Import it after the app's theme/skins/dark CSS and before the app's
+   own stylesheet, so an app can still override a detail. Only tokens here — every
+   colour, border and radius comes from the skin. */
+
+/* ---------- what a skin looks like ---------- */
+
+.sp {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+.sp-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-title {
+  font-size: 17px;
+}
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.sp-chip.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.sp-chip.muted {
+  border-style: dashed;
+  color: var(--muted);
+}
+.sp-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.sp-bar {
+  height: 8px;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.sp-bar-fill {
+  display: block;
+  width: 62%;
+  height: 100%;
+  background: var(--accent);
+}
+
+
+/* ---------- light / dark, said out loud ---------- */
+
+.mode-choice {
+  display: inline-flex;
+  align-self: flex-start;
+  border: var(--bd-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.mode-choice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.mode-choice-btn:hover {
+  color: var(--ink);
+}
+.mode-choice-btn.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---------------------------------------------------- app updates */
+
+.upd {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.upd-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.upd-ver {
+  font-size: 11px;
+  color: var(--muted);
+}
+.upd-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.upd-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: var(--bd-w) solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+.upd-head {
+  font-size: 12px;
+  font-weight: 700;
+}
+.upd-notes summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.upd-notes pre {
+  margin: 8px 0 0;
+  max-height: 220px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.upd-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+/* -------------------------------------------------- skin cards (shared) */
+
+/* The same grid in all three apps. A swatch alone says which two colours a
+   skin uses and nothing else — not its name, not that it is the one currently
+   on — and three of the four differ mostly in weight and border, which a
+   swatch cannot show at all. */
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+.skin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px;
+  /* It is a <button>: without this it keeps the UA's own button-text colour,
+     which goes invisible on the dark cards in dark mode. */
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--bd);
+  border-radius: var(--radius, var(--radius-sm));
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.skin-card:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow);
+}
+.skin-card.active {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.skin-card-sw {
+  width: 100%;
+  height: 48px;
+  border: var(--bd);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+}
+.skin-card-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+.skin-card-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  margin-top: 2px;
+}
+
+
+/* ------------------------------------------- appearance panel (shared) */
+
+/* One container, one set of paddings, one label style — identical in lil edit,
+   lil view and lil download, because the markup above it is now literally the
+   same component. The previous round copied the block into three files and it
+   drifted in three ways within a day. */
+.ap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 18px;
+  background: var(--surface);
+  border: var(--bd);
+  border-radius: var(--radius, var(--radius-sm));
+  box-shadow: var(--shadow-sm);
+}
+.ap-h {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--ink);
+}
+.ap-lead {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.ap-lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ap .mode-choice {
+  align-self: flex-start;
+}
+.ap .sp {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------- about tab (shared) */
+
+.about-id {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.about-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink);
+}
+.about-ver,
+.about-by {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.about-text {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.about-text p {
+  margin: 0 0 8px;
+}
+.about-block {
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: var(--bd-w) solid var(--line);
+}
+.about-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+/* Inside About the version is already shown next to the name. */
+.about-block .upd-ver {
+  display: none;
+}

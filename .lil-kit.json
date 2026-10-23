@@ -1,14 +1,22 @@
 {
   "src-tauri/src/menu.rs": "872ad500aded",
   "src-tauri/src/update.rs": "31612db50417",
+  "src/components/AboutPanel.tsx": "127c95d1e956",
+  "src/components/AppearancePanel.tsx": "5558491e7b88",
   "src/components/Icon.tsx": "4368f1cf9883",
+  "src/components/LanguagePicker.tsx": "b9a0841ea9b4",
+  "src/components/ModeToggle.tsx": "14492be15559",
+  "src/components/SkinCards.tsx": "e477651eb9d5",
+  "src/components/SkinPicker.tsx": "2cced796402a",
+  "src/components/SkinPreview.tsx": "2fdb8f3d36e5",
   "src/components/UpdatePanel.tsx": "d25185c5a14d",
   "src/dark.css": "2808e930487d",
-  "src/lib/i18n.tsx": "5c53f1545856",
+  "src/lib/i18n.tsx": "1df13e4ebf56",
   "src/lib/lilapp.ts": "d95302626ede",
   "src/lib/menu.ts": "f5742041d444",
   "src/lib/skin.tsx": "507cd3cc2ca2",
   "src/lib/tauri.ts": "3c2eab274158",
   "src/lib/update.ts": "e8d4d7702889",
+  "src/lil-settings.css": "a35fa518bece",
   "src/skins.css": "8c76b265a031"
 }

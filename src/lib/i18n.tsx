@@ -45,18 +45,25 @@ const Ctx = createContext<LangCtx>({
   s: DICTS.en,
 });
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>(readInitial);
+/**
+ * `only` pins the language for an app that isn't translated yet (lil clean):
+ * no locale detection, nothing stored, and setLang does nothing.
+ */
+export function LangProvider({ children, only }: { children: ReactNode; only?: Lang }) {
+  const [chosen, setChosen] = useState<Lang>(() => only ?? readInitial());
+  const lang = only ?? chosen;
+  const setLang = only ? () => {} : setChosen;
 
   // Reflect the choice on <html lang> (correct hyphenation/spellcheck) and persist.
   useEffect(() => {
     document.documentElement.lang = lang;
+    if (only) return;
     try {
       localStorage.setItem(STORAGE_KEY, lang);
     } catch {
       // storage may be unavailable (private mode); the attribute still applies.
     }
-  }, [lang]);
+  }, [lang, only]);
 
   return (
     <Ctx.Provider value={{ lang, setLang, s: DICTS[lang] }}>

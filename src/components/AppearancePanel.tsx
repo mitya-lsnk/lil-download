@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/AppearancePanel.tsx, then run ~/lil-kit/sync.sh
 import { useStrings } from "../lib/i18n";
 import { ModeChoice } from "./ModeToggle";
 import { SkinCards } from "./SkinCards";

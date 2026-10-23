@@ -1,3 +1,4 @@
+// lil-kit: shared file — edit ~/lil-kit/web/src/components/SkinPicker.tsx, then run ~/lil-kit/sync.sh
 import { SKINS, useSkin } from "../lib/skin";
 import { useStrings } from "../lib/i18n";
 
