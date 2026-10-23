@@ -73,8 +73,18 @@ api.runtime.onInstalled.addListener(addMenu);
 api.runtime.onStartup?.addListener(addMenu);
 addMenu();
 
+/** Что было под щелчком по словам помощника на странице (content.js). */
+async function underClick(tabId) {
+  try {
+    return (await api.tabs.sendMessage(tabId, { q: "lil-download:target" })) ?? null;
+  } catch {
+    // Ни одна рамка страницы не ответила — значит, ничего не нашлось.
+    return null;
+  }
+}
+
 /** Что отправлять, смотря по тому, на чём щёлкнули. */
-function pick(info) {
+function pick(info, found) {
   const page = info.pageUrl ?? null;
   const web = (u) => typeof u === "string" && /^https?:\/\//.test(u);
   // Ссылка — главное: «скачать то, на что она ведёт». Что за ней, видео или
@@ -87,13 +97,18 @@ function pick(info) {
   if (web(info.srcUrl) && (info.mediaType === "video" || info.mediaType === "audio")) {
     return { url: info.srcUrl, referer: page, kind: "file" };
   }
+  // Сафари картинку не увидел (лежит под прозрачным слоем), а помощник на
+  // странице увидел.
+  if (web(found?.image)) return { url: found.image, referer: page, kind: "file" };
+  if (web(found?.video)) return { url: found.video, referer: page, kind: "file" };
   if (web(page)) return { url: page, referer: null, kind: null };
   return null;
 }
 
 menus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== MENU_ID) return;
-  const item = pick(info);
+  const direct = info.linkUrl || info.srcUrl;
+  const item = pick(info, direct || tab?.id === undefined ? null : await underClick(tab.id));
   if (!item) {
     flash(tab?.id, false, T.notWeb);
     return;

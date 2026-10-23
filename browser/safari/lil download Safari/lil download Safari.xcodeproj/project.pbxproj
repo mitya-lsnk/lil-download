@@ -20,6 +20,7 @@
 		78CA329F308BC4F500C8D98F /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 78CA3299308BC4F500C8D98F /* icon.png */; };
 		78CA32A0308BC4F500C8D98F /* icon-16.png in Resources */ = {isa = PBXBuildFile; fileRef = 78CA329A308BC4F500C8D98F /* icon-16.png */; };
 		78CA32A1308BC4F500C8D98F /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 78CA329B308BC4F500C8D98F /* background.js */; };
+		0C0E7E5B2F1B4C0100A1B2C3 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 0C0E7E5A2F1B4C0100A1B2C3 /* content.js */; };
 		78CA32A2308BC4F500C8D98F /* icon-48.png in Resources */ = {isa = PBXBuildFile; fileRef = 78CA329C308BC4F500C8D98F /* icon-48.png */; };
 		78CA32A3308BC4F500C8D98F /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 78CA329D308BC4F500C8D98F /* manifest.json */; };
 		78CA32A4308BC4F500C8D98F /* icon-32.png in Resources */ = {isa = PBXBuildFile; fileRef = 78CA329E308BC4F500C8D98F /* icon-32.png */; };
@@ -64,6 +65,7 @@
 		78CA3299308BC4F500C8D98F /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = ../../../extension/icon.png; sourceTree = "<group>"; };
 		78CA329A308BC4F500C8D98F /* icon-16.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon-16.png"; path = "../../../extension/icon-16.png"; sourceTree = "<group>"; };
 		78CA329B308BC4F500C8D98F /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../extension/background.js; sourceTree = "<group>"; };
+		0C0E7E5A2F1B4C0100A1B2C3 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../extension/content.js; sourceTree = "<group>"; };
 		78CA329C308BC4F500C8D98F /* icon-48.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon-48.png"; path = "../../../extension/icon-48.png"; sourceTree = "<group>"; };
 		78CA329D308BC4F500C8D98F /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../extension/manifest.json; sourceTree = "<group>"; };
 		78CA329E308BC4F500C8D98F /* icon-32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon-32.png"; path = "../../../extension/icon-32.png"; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				78CA3299308BC4F500C8D98F /* icon.png */,
 				78CA329A308BC4F500C8D98F /* icon-16.png */,
 				78CA329B308BC4F500C8D98F /* background.js */,
+				0C0E7E5A2F1B4C0100A1B2C3 /* content.js */,
 				78CA329C308BC4F500C8D98F /* icon-48.png */,
 				78CA329D308BC4F500C8D98F /* manifest.json */,
 				78CA329E308BC4F500C8D98F /* icon-32.png */,
@@ -243,6 +246,7 @@
 				78CA329F308BC4F500C8D98F /* icon.png in Resources */,
 				78CA32A3308BC4F500C8D98F /* manifest.json in Resources */,
 				78CA32A1308BC4F500C8D98F /* background.js in Resources */,
+				0C0E7E5B2F1B4C0100A1B2C3 /* content.js in Resources */,
 				78CA32A0308BC4F500C8D98F /* icon-16.png in Resources */,
 				78CA32A4308BC4F500C8D98F /* icon-32.png in Resources */,
 			);
