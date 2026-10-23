@@ -185,6 +185,12 @@ pub fn humanize(stderr: &str) -> String {
         "Сайт отдаёт это видео только тем, кто вошёл в аккаунт. Если аккаунт есть — нажми 🍪 и выбери браузер, где ты на этом сайте залогинен. Если нет — без входа это видео не скачать; иногда помогает обновить yt-dlp в настройках."
     } else if low.contains("geo") && low.contains("block") {
         "Видео заблокировано в этом регионе. Поможет прокси в настройках."
+    } else if low.contains("operation not permitted")
+        && (low.contains("binarycookies") || low.contains("com.apple.safari"))
+    {
+        // macOS keeps Safari's cookies behind Full Disk Access, and the grant
+        // belongs to one exact build of the app.
+        "Куки Сафари macOS отдаёт только с «Полным доступом к диску». Системные настройки → Конфиденциальность и безопасность → Полный доступ к диску → включи lil download и перезапусти его. Или выбери в 🍪 другой браузер либо «без куки»."
     } else if low.contains("could not copy") && low.contains("cookie") {
         "Не вышло прочитать куки браузера. Закрой его полностью и попробуй ещё раз — Chrome держит базу открытой."
     } else if low.contains("unsupported url") {
@@ -219,6 +225,8 @@ mod tests {
 
     #[test]
     fn known_failures_become_actionable_russian() {
+        let m = humanize("[Errno 1] Operation not permitted: '/Users/x/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies'");
+        assert!(m.contains("Полным доступом к диску"), "{m}");
         let m = humanize("ERROR: [vimeo] 76979871: The web client only works when logged-in. Use --cookies, --cookies-from-browser, --username and --password, --netrc-cmd, or --netrc (vimeo) to provide account credentials.");
         assert!(m.contains("вошёл в аккаунт"), "{m}");
         let m = humanize("ERROR: [youtube] abc: Private video. Sign in if you've been granted access");
