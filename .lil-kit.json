@@ -3,7 +3,7 @@
   "src-tauri/src/update.rs": "31612db50417",
   "src/components/AboutPanel.tsx": "127c95d1e956",
   "src/components/AppearancePanel.tsx": "5558491e7b88",
-  "src/components/Icon.tsx": "4368f1cf9883",
+  "src/components/Icon.tsx": "01224750f0d0",
   "src/components/LanguagePicker.tsx": "b9a0841ea9b4",
   "src/components/ModeToggle.tsx": "14492be15559",
   "src/components/SkinCards.tsx": "e477651eb9d5",

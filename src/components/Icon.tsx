@@ -40,6 +40,7 @@ import {
   Minus,
   Moon,
   PenLine,
+  Pause,
   Play,
   Plus,
   RefreshCw,
@@ -114,6 +115,8 @@ const SET = {
   trim: Scissors,
   subs: Subtitles,
   sponsor: Tag,
+  pause: Pause,
+  play: Play,
 
   // lil view
   filmstrip: GalleryHorizontalEnd,

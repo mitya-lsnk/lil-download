@@ -123,6 +123,10 @@ export interface Prefs {
   limitUnit: RateUnit;
   /** How the queue is laid out — remembered, like everything else here. */
   queueView: "list" | "bento";
+  /** Which tab the window opens on. */
+  tab: "video" | "files";
+  /** Connections per plain file download (PLAN §13). */
+  threads: number;
 }
 
 export const DEFAULTS: Prefs = {
@@ -148,6 +152,8 @@ export const DEFAULTS: Prefs = {
   limitRate: null,
   limitUnit: "M",
   queueView: "list",
+  tab: "video",
+  threads: 4,
 };
 
 const KEY = "lildownload.prefs";

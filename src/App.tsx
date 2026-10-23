@@ -2,11 +2,12 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { open } from "@tauri-apps/plugin-dialog";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
-import { api, on, type MediaInfo, type ParsedLink, type ToolStatus } from "./lib/api";
+import { api, on, type FileInfo, type MediaInfo, type ParsedLink, type ToolStatus } from "./lib/api";
 import { hasTauri } from "./lib/tauri";
 import {
   isBuiltin,
   rateArg,
+  ratePerSecond,
   resolveDest,
   resolveMask,
   resolvePreset,
@@ -21,6 +22,7 @@ import { forgetUpdate, readTools, readUpdate, writeTools, writeUpdate } from "./
 import { guessThumb } from "./lib/thumb";
 import { LanguagePicker } from "./components/LanguagePicker";
 import { CookiePicker } from "./components/CookiePicker";
+import { FileCard } from "./components/FileCard";
 import { Icon } from "./components/Icon";
 import { LinkBar } from "./components/LinkBar";
 import { MediaCard } from "./components/MediaCard";
@@ -120,6 +122,19 @@ export default function App() {
   const [draft, setDraft] = useState<string>(readDraft);
   const [toast, setToast] = useState<{ msg: string; kind: "info" | "error" } | null>(null);
 
+  // The Файлы tab (PLAN §13). Its own card and folder choice, so switching tabs
+  // never carries a half-set video card over into a file one or back.
+  const tab = prefs.tab;
+  const [fileDraft, setFileDraft] = useState("");
+  const [fileBusy, setFileBusy] = useState(false);
+  const [fileLink, setFileLink] = useState<ParsedLink | null>(null);
+  const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
+  const [fileName, setFileName] = useState("");
+  const [fileDest, setFileDest] = useState<string | null>(null);
+  const [fileDestReason, setFileDestReason] = useState<"rule" | "last" | "default" | "os">("os");
+  const [fileRememberFolder, setFileRememberFolder] = useState(false);
+  const [fileRememberSource, setFileRememberSource] = useState(false);
+
   // Read by the unload handler, which must see the newest values without being
   // re-registered on every keystroke and every progress tick.
   const jobsRef = useRef(jobs);
@@ -147,7 +162,13 @@ export default function App() {
       // The path is read from the ref rather than from inside the updater:
       // React may run an updater twice, and trashing a file twice is not the
       // kind of thing to leave to chance.
-      const path = withFile ? jobsRef.current.find((j) => j.id === id)?.path : null;
+      const job = jobsRef.current.find((j) => j.id === id);
+      // A file that never finished leaves its piece on disk; removing the row
+      // is the moment nobody will ever want it again.
+      if (job?.kind === "file" && job.state !== "done" && job.dir && job.name) {
+        api.discardFile(job.dir, job.name).catch((e) => setToast({ msg: String(e), kind: "error" }));
+      }
+      const path = withFile ? job?.path : null;
       if (path) {
         api
           .trashFile(path)
@@ -174,6 +195,17 @@ export default function App() {
   // times a second. An inline arrow meant the timer was reset before it could
   // ever fire, so confirmations sat on screen indefinitely.
   const closeToast = useCallback(() => setToast(null), []);
+
+  // Each tab shows its own kind of row; the queue underneath is one list.
+  const tabJobs = useMemo(
+    () => jobs.filter((j) => (tab === "files") === (j.kind === "file")),
+    [jobs, tab],
+  );
+  const handleFileRef = useRef<(raw: string) => void>(() => {});
+  const againFile = useCallback((url: string) => {
+    setFileDraft(url);
+    handleFileRef.current(url);
+  }, []);
 
   const copyLink = useCallback(
     (url: string) => {
@@ -206,6 +238,7 @@ export default function App() {
 
   useEffect(() => {
     handleLinkRef.current = handleLink;
+    handleFileRef.current = handleFile;
   });
 
   // Both writes are debounced, so a window closed a moment after the last
@@ -284,6 +317,7 @@ export default function App() {
                   speed: e.speed,
                   eta: e.eta,
                   stage: e.stage,
+                  conns: e.conns ?? j.conns,
                 }
               : j,
           ),
@@ -300,7 +334,14 @@ export default function App() {
                   ...j,
                   // A kill and a real failure both exit non-zero; the message
                   // from the Rust side is what tells them apart.
-                  state: e.ok ? "done" : e.error?.includes("отменена") ? "cancelled" : "failed",
+                  state: e.ok
+                    ? "done"
+                    : e.paused
+                      ? "paused"
+                      : e.error?.includes("отменена")
+                        ? "cancelled"
+                        : "failed",
+                  conns: 0,
                   path: e.path,
                   error: e.ok ? null : e.error,
                   status: "",
@@ -313,6 +354,13 @@ export default function App() {
     return () => {
       unsubs.forEach((p) => p.then((f) => f()));
     };
+  }, []);
+
+  // Files that were downloading when the app quit carry on by themselves.
+  useEffect(() => {
+    if (!hasTauri()) return;
+    jobsRef.current.filter((j) => j.wasRunning).forEach((j) => resumeFile(j.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function runUpdate() {
@@ -527,6 +575,150 @@ export default function App() {
     setDraft("");
   }
 
+  function setTab(t: "video" | "files") {
+    set("tab", t);
+  }
+
+  /**
+   * Send one file job to the downloader — a new one, or the same id again to
+   * continue it. Rust finds the half-done piece by folder, name and link.
+   */
+  function runFile(id: number, url: string, dir: string, name: string) {
+    api
+      .startFile({
+        id,
+        url,
+        dest_dir: dir,
+        name,
+        threads: prefs.threads,
+        limit_bps: ratePerSecond(prefs.limitRate, prefs.limitUnit),
+      })
+      .then((st) =>
+        setJobs((js) =>
+          js.map((j) => (j.id === id ? { ...j, name: st.name, title: st.name, ranges: st.ranges } : j)),
+        ),
+      )
+      .catch((e) =>
+        setJobs((js) =>
+          js.map((j) => (j.id === id ? { ...j, state: "failed", error: String(e), conns: 0 } : j)),
+        ),
+      );
+  }
+
+  function queueFile(url: string, source: string, dir: string, name: string, size: number | null) {
+    const id = nextId.current++;
+    setJobs((js) => [
+      {
+        id,
+        kind: "file",
+        url,
+        // Until the server names it, the tail of the link is the best guess.
+        title: name || decodeURIComponent(url.split("?")[0].split("/").filter(Boolean).pop() ?? url),
+        thumbnail: null,
+        source,
+        state: "running",
+        downloaded: 0,
+        total: size,
+        speed: null,
+        eta: null,
+        stage: "",
+        status: s.queue.starting,
+        path: null,
+        error: null,
+        dir,
+        name,
+        conns: 0,
+      },
+      ...js,
+    ]);
+    runFile(id, url, dir, name);
+  }
+
+  const resumeFile = useCallback((id: number) => {
+    const j = jobsRef.current.find((x) => x.id === id);
+    if (!j || !j.dir) return;
+    setJobs((js) =>
+      js.map((x) =>
+        x.id === id ? { ...x, state: "running", error: null, wasRunning: false, status: s.queue.starting } : x,
+      ),
+    );
+    runFileRef.current(id, j.url, j.dir, j.name ?? "");
+  }, [s.queue.starting]);
+  const runFileRef = useRef(runFile);
+  runFileRef.current = runFile;
+
+  const pauseFile = useCallback((id: number) => {
+    api.pauseFile(id).catch(() => {});
+  }, []);
+
+  /** Paste → probe → card, or straight to the queue for several links at once. */
+  async function handleFile(raw: string, quick = false) {
+    // Pasted lists arrive with their line breaks squashed out of a one-line
+    // field, so links are told apart by where the next one starts.
+    const urls = raw
+      .split(/\s+|(?=https?:\/\/)/)
+      .map((u) => u.trim())
+      .filter((u) => /^https?:\/\//.test(u));
+    if (urls.length > 1) {
+      for (const u of urls) {
+        const parsed = await api.parseLink(u).catch(() => null);
+        const d = resolveDest(prefs, parsed?.source ?? null, osDownloads);
+        if (d.dir) queueFile(u, parsed?.source ?? "", d.dir, "", null);
+      }
+      setToast({ msg: s.files.queued(urls.length), kind: "info" });
+      setFileDraft("");
+      return;
+    }
+    setFileBusy(true);
+    setFileInfo(null);
+    setFileLink(null);
+    try {
+      const parsed = await api.parseLink(raw);
+      if (!parsed) {
+        setToast({ msg: s.err.notALink, kind: "error" });
+        return;
+      }
+      const d = resolveDest(prefs, parsed.source, osDownloads);
+      // The original, not the cleaned link: a file URL's query string is
+      // usually its signature, and the cleaner strips "tracking" parameters.
+      const info = await api.probeFile(parsed.original);
+      if (quick && d.dir && !info.page) {
+        queueFile(parsed.original, parsed.source, d.dir, info.name, info.size);
+        setFileDraft("");
+        return;
+      }
+      setFileLink(parsed);
+      setFileInfo(info);
+      setFileName(info.name);
+      setFileDest(d.dir);
+      setFileDestReason(d.reason);
+      setFileRememberFolder(false);
+      setFileRememberSource(false);
+    } catch (e) {
+      setToast({ msg: String(e), kind: "error" });
+    } finally {
+      setFileBusy(false);
+    }
+  }
+
+  function startFile() {
+    if (!fileLink || !fileInfo || !fileDest) return;
+    if (fileRememberFolder) set("lastDir", fileDest);
+    if (fileRememberSource) setRule(fileLink.source, { dir: fileDest });
+    queueFile(fileLink.original, fileLink.source, fileDest, fileName.trim(), fileInfo.size);
+    setFileInfo(null);
+    setFileLink(null);
+    setFileDraft("");
+  }
+
+  async function pickFileDest() {
+    const picked = await open({ directory: true, multiple: false, defaultPath: fileDest ?? undefined });
+    if (typeof picked === "string") {
+      setFileDest(picked);
+      setFileDestReason("last");
+    }
+  }
+
   if (!hasTauri()) {
     return <div className="browser-note b-panel">{s.err.browserOnly}</div>;
   }
@@ -571,8 +763,22 @@ export default function App() {
     <div className="app-shell">
       <header className="head" data-tauri-drag-region>
         <span className="head-name b-display">{s.app.name}</span>
-        <span className="head-tag b-mono">{s.app.tagline}</span>
+        <div className="tabs" role="tablist">
+          {(["video", "files"] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === t}
+              className={`b-btn ${tab === t ? "on" : ""}`}
+              onClick={() => setTab(t)}
+            >
+              {s.tabs[t]}
+            </button>
+          ))}
+        </div>
         <span className="head-sp" />
+        {tab === "video" && (
+        <>
         <PresetPicker
           value={preset}
           onChange={(p) => {
@@ -593,6 +799,8 @@ export default function App() {
           value={prefs.cookies}
           onChange={(b) => set("cookies", b)}
         />
+        </>
+        )}
         <ModeToggle />
         <LanguagePicker />
         <button className="b-btn" onClick={() => setSettingsOpen("tools")} title={s.settings.title}>
@@ -603,7 +811,7 @@ export default function App() {
             the sentence could be read, and sat at "готов" the rest of the time.
             One moving line on the header's edge says the same thing honestly —
             something is in flight — without claiming to know what or how long. */}
-        {busy && <span className="head-work" aria-hidden="true" />}
+        {(busy || fileBusy) && <span className="head-work" aria-hidden="true" />}
       </header>
 
       <main className="main">
@@ -624,6 +832,52 @@ export default function App() {
           </div>
         )}
 
+        {tab === "files" && (
+          <>
+            <LinkBar
+              value={fileDraft}
+              onValue={setFileDraft}
+              onSubmit={handleFile}
+              busy={fileBusy}
+              canQuick={!!resolveDest(prefs, null, osDownloads).dir}
+              placeholder={s.files.hint}
+            />
+            {fileBusy && <CardSkeleton thumb={null} source={null} />}
+            {!fileBusy && fileInfo && fileLink && (
+              <FileCard
+                info={fileInfo}
+                source={fileLink.source}
+                name={fileName}
+                onName={setFileName}
+                threads={prefs.threads}
+                dest={fileDest}
+                destReason={fileDestReason}
+                onPickDest={pickFileDest}
+                rememberFolder={fileRememberFolder}
+                onRememberFolder={setFileRememberFolder}
+                rememberSource={fileRememberSource}
+                onRememberSource={setFileRememberSource}
+                onDownload={startFile}
+                onToVideo={() => {
+                  const url = fileLink.original;
+                  setFileInfo(null);
+                  setFileLink(null);
+                  setFileDraft("");
+                  setTab("video");
+                  setDraft(url);
+                  handleLink(url);
+                }}
+                onClear={() => {
+                  setFileInfo(null);
+                  setFileLink(null);
+                }}
+              />
+            )}
+          </>
+        )}
+
+        {tab === "video" && (
+        <>
         <LinkBar
           value={draft}
           onValue={setDraft}
@@ -674,18 +928,33 @@ export default function App() {
           />
         )}
 
+        </>
+        )}
+
         <Queue
-          jobs={jobs}
+          jobs={tabJobs}
           // Remembered like every other preference. The queue itself has been
           // persisted since the Full Disk Access flow forced a restart mid-job;
           // this toggle simply never got the same treatment.
           view={prefs.queueView}
           onView={(v) => set("queueView", v)}
-          onAgain={againWith}
+          onAgain={tab === "files" ? againFile : againWith}
           onCopy={copyLink}
           // Running jobs survive: clearing the list must not orphan a download
           // that is still writing to disk.
-          onClear={() => setJobs((js) => js.filter((j) => j.state === "running"))}
+          // Paused files survive too: their pieces are still on disk.
+          onClear={() =>
+            setJobs((js) =>
+              js.filter(
+                (j) =>
+                  (tab === "files") !== (j.kind === "file") ||
+                  j.state === "running" ||
+                  j.state === "paused",
+              ),
+            )
+          }
+          onPause={pauseFile}
+          onResume={resumeFile}
           onCancel={cancelJob}
           onReveal={revealJob}
           onRemove={removeJob}

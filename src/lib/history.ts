@@ -21,10 +21,13 @@ export function readHistory(): Job[] {
     return parsed.map((j) => ({
       ...j,
       // A job that was mid-flight when the app closed did not survive it. Saying
-      // "running" would show a progress bar that can never move again.
-      state: j.state === "running" ? "cancelled" : j.state,
+      // "running" would show a progress bar that can never move again. A file
+      // download did survive on disk, though, and picks up again by itself.
+      state: j.state === "running" ? (j.kind === "file" ? "paused" : "cancelled") : j.state,
+      wasRunning: j.kind === "file" && j.state === "running",
       speed: null,
       eta: null,
+      conns: 0,
       status: "",
     }));
   } catch {

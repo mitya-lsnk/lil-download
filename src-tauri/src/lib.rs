@@ -1,6 +1,7 @@
 mod bins;
 mod cookies;
 mod dl;
+mod fetch;
 mod menu;
 mod probe;
 mod update;
@@ -170,6 +171,38 @@ fn cancel_download(app: tauri::AppHandle, id: u64) -> Result<(), String> {
     dl::cancel(&app.state::<Arc<dl::Jobs>>(), id)
 }
 
+/// What the server says about a plain file link, before anything downloads.
+#[tauri::command]
+async fn probe_file(url: String, referer: Option<String>) -> Result<fetch::FileInfo, String> {
+    fetch::probe(&url, referer.as_deref()).await
+}
+
+/// Start or continue a plain file download. Events go out under the same
+/// names as yt-dlp's, so the queue draws both kinds of row the same way.
+#[tauri::command]
+async fn start_file(app: tauri::AppHandle, req: fetch::FileRequest) -> Result<fetch::Started, String> {
+    use tauri::Emitter;
+    let jobs = app.state::<Arc<fetch::FileJobs>>().inner().clone();
+    let emit = Arc::new(move |e: fetch::Event| {
+        let _ = match e {
+            fetch::Event::Progress(p) => app.emit("dl-progress", p),
+            fetch::Event::Done(d) => app.emit("dl-done", d),
+        };
+    });
+    fetch::start(jobs, req, emit).await
+}
+
+#[tauri::command]
+fn pause_file(app: tauri::AppHandle, id: u64) {
+    app.state::<Arc<fetch::FileJobs>>().pause(id);
+}
+
+/// Drop a half-done file download — its pieces go to the Trash.
+#[tauri::command]
+async fn discard_file(dir: String, name: String) -> Result<(), String> {
+    off_thread(move || fetch::discard(&dir, &name)).await?
+}
+
 /// The system's Downloads folder — the default destination (PLAN §4).
 #[tauri::command]
 fn default_download_dir(app: tauri::AppHandle) -> Option<String> {
@@ -257,6 +290,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Arc::new(dl::Jobs::default()))
+        .manage(Arc::new(fetch::FileJobs::default()))
         .on_menu_event(menu::on_event)
         .invoke_handler(tauri::generate_handler![
             menu::lil_menu,
@@ -271,6 +305,10 @@ pub fn run() {
             playlist_size,
             start_download,
             cancel_download,
+            probe_file,
+            start_file,
+            pause_file,
+            discard_file,
             default_download_dir,
             reveal,
             trash_file,

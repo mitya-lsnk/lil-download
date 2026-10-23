@@ -47,6 +47,25 @@ export interface MediaInfo {
   warns_editors: boolean;
 }
 
+/** What the server says about a plain file link (the Файлы tab). */
+export interface FileInfo {
+  url: string;
+  name: string;
+  size: number | null;
+  /** Several connections and resuming both work. */
+  ranges: boolean;
+  mime: string | null;
+  /** A web page, not a file — belongs on the Видео tab. */
+  page: boolean;
+}
+
+export interface FileStarted {
+  /** The name actually used, "file (1).zip" when "file.zip" was taken. */
+  name: string;
+  resumed: boolean;
+  ranges: boolean;
+}
+
 export interface UpdateInfo {
   current: string | null;
   latest: string | null;
@@ -108,6 +127,19 @@ export const api = {
     paths: ToolPaths,
   ) => call<void>("start_download", { req, paths }),
   cancelDownload: (id: number) => call<void>("cancel_download", { id }),
+  probeFile: (url: string, referer?: string | null) =>
+    call<FileInfo>("probe_file", { url, referer: referer ?? null }),
+  startFile: (req: {
+    id: number;
+    url: string;
+    dest_dir: string;
+    name: string;
+    threads: number;
+    limit_bps: number | null;
+    referer?: string | null;
+  }) => call<FileStarted>("start_file", { req }),
+  pauseFile: (id: number) => call<void>("pause_file", { id }),
+  discardFile: (dir: string, name: string) => call<void>("discard_file", { dir, name }),
   defaultDownloadDir: () => call<string | null>("default_download_dir"),
   reveal: (path: string) => call<void>("reveal", { path }),
   trashFile: (path: string) => call<void>("trash_file", { path }),
@@ -122,6 +154,8 @@ export interface ProgressEvent {
   speed: number | null;
   eta: number | null;
   stage: string;
+  /** File downloads only: connections receiving right now. */
+  conns?: number;
 }
 
 export interface DoneEvent {
@@ -129,6 +163,8 @@ export interface DoneEvent {
   ok: boolean;
   path: string | null;
   error: string | null;
+  /** File downloads only: stopped on request, everything kept for later. */
+  paused?: boolean;
 }
 
 export interface InstallEvent {

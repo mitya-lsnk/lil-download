@@ -139,6 +139,22 @@ export function SettingsScreen({
               </div>
 
               <label className="settings-field">
+                <span>{s.settings.threads}</span>
+                <input
+                  className="settings-input lim-num b-mono"
+                  type="number"
+                  min={1}
+                  max={16}
+                  step={1}
+                  value={prefs.threads}
+                  onChange={(e) =>
+                    onSet("threads", Math.min(16, Math.max(1, Math.round(Number(e.target.value) || 1))))
+                  }
+                />
+                <span className="settings-hint">{s.settings.threadsHint}</span>
+              </label>
+
+              <label className="settings-field">
                 <span>{s.settings.extraArgs}</span>
                 <FlagsInput
                   value={prefs.extraArgs}

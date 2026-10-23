@@ -2189,6 +2189,7 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
  "tauri-plugin-opener",
+ "tokio",
  "trash",
  "url",
  "xz2",

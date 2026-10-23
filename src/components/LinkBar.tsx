@@ -18,6 +18,7 @@ export function LinkBar({
   onSubmit,
   busy,
   canQuick,
+  placeholder,
 }: {
   value: string;
   onValue: (v: string) => void;
@@ -26,6 +27,7 @@ export function LinkBar({
   busy: boolean;
   /** There is somewhere to put it, so the one-shot path is available. */
   canQuick: boolean;
+  placeholder?: string;
 }) {
   const s = useStrings();
   const [note, setNote] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export function LinkBar({
           ref={ref}
           className="linkbar-input b-mono"
           value={value}
-          placeholder={s.app.dropHint}
+          placeholder={placeholder ?? s.app.dropHint}
           spellCheck={false}
           onChange={(e) => onValue(e.target.value)}
           onKeyDown={(e) => {

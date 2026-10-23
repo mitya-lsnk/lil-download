@@ -1935,3 +1935,27 @@ input[type="checkbox"]:focus-visible {
   align-items: stretch;
   gap: 10px;
 }
+
+/* ---------- Видео | Файлы ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+.head .tabs .b-btn.on {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+/* ---------- file card ---------- */
+
+.file-name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 36px; /* clear of the card's close button */
+}
+.file-warn {
+  font-size: 12px;
+  color: var(--muted);
+}

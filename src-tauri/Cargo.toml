@@ -29,6 +29,8 @@ url = "2"
 # depend on the platform's OpenSSL.
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
 futures-util = "0.3"
+# Timers for the file downloader. Already in the tree under Tauri and reqwest.
+tokio = { version = "1", features = ["time"] }
 sha2 = "0.10"
 hex = "0.4"
 

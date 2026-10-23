@@ -6,6 +6,15 @@
  * rather than a blank label at runtime.
  */
 
+/** 1 поток, 2 потока, 5 потоков. */
+function plural(n: number, one: string, few: string, many: string): string {
+  const d = n % 10;
+  const h = n % 100;
+  if (d === 1 && h !== 11) return one;
+  if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return few;
+  return many;
+}
+
 export const RU = {
   app: {
     name: "lil download",
@@ -58,6 +67,8 @@ export const RU = {
     limitHint: "Пусто или 0 — качаем во всю ширину канала.",
     perSecond: "с",
     units: { K: "КБ/с", M: "МБ/с", Mbit: "Мбит/с" },
+    threads: "Потоков на один файл",
+    threadsHint: "Больше потоков — быстрее, если сервер режет скорость на одно подключение. Если сервер против, программа сама уменьшит число.",
     tabTools: "Программы",
     tabDownload: "Скачивание",
     tabPresets: "Пресеты",
@@ -138,6 +149,18 @@ export const RU = {
     audio: { name: "Только звук", note: "без картинки", tech: "лучшая звуковая дорожка" },
     compact: { name: "Полегче файл", note: "720p, качается быстро", tech: "видео до 720p + звук" },
   },
+  tabs: { video: "Видео", files: "Файлы" },
+  files: {
+    hint: "Ссылка на файл: архив, программа, документ. Можно несколько сразу",
+    name: "Имя",
+    unknownSize: "размер неизвестен",
+    resumable: "докачка есть",
+    noResume: "Сервер не умеет докачку: если связь оборвётся, начнём сначала.",
+    threads: (n: number) => `${n} ${plural(n, "поток", "потока", "потоков")}`,
+    page: "По ссылке страница, а не файл. Видео с неё скачивается во вкладке «Видео».",
+    toVideo: "Открыть во вкладке «Видео»",
+    queued: (n: number) => `${n} ${plural(n, "файл", "файла", "файлов")} в очереди`,
+  },
   queue: {
     title: "Очередь",
     empty: "Пока пусто",
@@ -158,6 +181,10 @@ export const RU = {
     viewBento: "Плитками",
     of: "из",
     eta: "осталось",
+    pause: "Пауза",
+    resume: "Продолжить",
+    paused: "На паузе",
+    removePart: "Убрать из списка, недокачанный кусок — в корзину",
   },
   update: {
     stale: "yt-dlp устарел",
@@ -326,6 +353,8 @@ export const EN: Dict = {
     limitHint: "Empty or 0 — take the whole pipe.",
     perSecond: "s",
     units: { K: "KB/s", M: "MB/s", Mbit: "Mbit/s" },
+    threads: "Connections per file",
+    threadsHint: "More is faster when a server caps each connection. If the server objects, the app backs off by itself.",
     tabTools: "Tools",
     tabDownload: "Downloading",
     tabPresets: "Presets",
@@ -396,6 +425,18 @@ export const EN: Dict = {
     audio: { name: "Audio only", note: "no picture", tech: "best audio track" },
     compact: { name: "Lighter file", note: "720p, downloads fast", tech: "video up to 720p + audio" },
   },
+  tabs: { video: "Video", files: "Files" },
+  files: {
+    hint: "A link to a file: an archive, an app, a document. Several at once is fine",
+    name: "Name",
+    unknownSize: "size unknown",
+    resumable: "resumable",
+    noResume: "This server can't resume: if the connection drops, it starts over.",
+    threads: (n: number) => `${n} ${n === 1 ? "connection" : "connections"}`,
+    page: "That link is a page, not a file. Video from it downloads on the Video tab.",
+    toVideo: "Open on the Video tab",
+    queued: (n: number) => `${n} ${n === 1 ? "file" : "files"} queued`,
+  },
   queue: {
     title: "Queue",
     empty: "Nothing yet",
@@ -416,6 +457,10 @@ export const EN: Dict = {
     viewBento: "As tiles",
     of: "of",
     eta: "left",
+    pause: "Pause",
+    resume: "Resume",
+    paused: "Paused",
+    removePart: "Remove from the list, the unfinished part goes to the Trash",
   },
   update: {
     stale: "yt-dlp is out of date",

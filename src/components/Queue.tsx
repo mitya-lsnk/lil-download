@@ -14,7 +14,7 @@ export interface Job {
   /** Poster frame, so a finished row is findable by eye and not by reading. */
   thumbnail: string | null;
   source: string;
-  state: "running" | "done" | "failed" | "cancelled";
+  state: "running" | "done" | "failed" | "cancelled" | "paused";
   downloaded: number;
   total: number | null;
   speed: number | null;
@@ -23,6 +23,17 @@ export interface Job {
   status: string;
   path: string | null;
   error: string | null;
+  /** A plain file from the Файлы tab; absent on video rows (and old history). */
+  kind?: "file";
+  /** File rows: where it goes and under what name — enough to find the half-done
+   * piece on disk and carry on. */
+  dir?: string;
+  name?: string;
+  /** File rows: the server resumes, so pausing loses nothing. */
+  ranges?: boolean;
+  conns?: number;
+  /** Was downloading when the app quit; continues on the next launch. */
+  wasRunning?: boolean;
 }
 
 export function Queue({
@@ -35,6 +46,8 @@ export function Queue({
   onAgain,
   onCopy,
   onClear,
+  onPause,
+  onResume,
 }: {
   jobs: Job[];
   view: QueueView;
@@ -47,6 +60,8 @@ export function Queue({
   onAgain: (url: string) => void;
   onCopy: (url: string) => void;
   onClear: () => void;
+  onPause: (id: number) => void;
+  onResume: (id: number) => void;
 }) {
   const s = useStrings();
 
@@ -110,6 +125,8 @@ export function Queue({
             onRemove={onRemove}
             onAgain={onAgain}
             onCopy={onCopy}
+            onPause={onPause}
+            onResume={onResume}
           />
         ))}
       </div>
@@ -133,6 +150,8 @@ const JobRow = memo(function JobRow({
   onRemove,
   onAgain,
   onCopy,
+  onPause,
+  onResume,
 }: {
   job: Job;
   /** Grid width in bento mode; null in list mode. */
@@ -142,8 +161,14 @@ const JobRow = memo(function JobRow({
   onRemove: (id: number, withFile: boolean) => void;
   onAgain: (url: string) => void;
   onCopy: (url: string) => void;
+  onPause: (id: number) => void;
+  onResume: (id: number) => void;
 }) {
   const s = useStrings();
+  const file = j.kind === "file";
+  // A half-done file is still on disk and can carry on, whether it was paused
+  // or stopped by an error.
+  const canResume = file && (j.state === "paused" || j.state === "failed" || j.state === "cancelled");
   // An unknown total is normal for live streams and some extractors, so
   // the bar goes indeterminate rather than pretending to a percentage.
   const pct = j.total ? Math.min(100, (j.downloaded / j.total) * 100) : null;
@@ -182,6 +207,7 @@ const JobRow = memo(function JobRow({
               {s.queue.eta} {eta(j.eta)}
             </span>
             {j.stage && <span>{j.stage}</span>}
+            {file && !!j.conns && <span>{s.files.threads(j.conns)}</span>}
           </div>
           {j.status && <div className="job-status b-mono">{j.status}</div>}
         </>
@@ -193,18 +219,35 @@ const JobRow = memo(function JobRow({
             {j.state === "done" && <><Icon name="ok" size={13} /> {s.queue.done}</>}
             {j.state === "failed" && <><Icon name="warn" size={13} /> {s.queue.failed}</>}
             {j.state === "cancelled" && <><Icon name="stop" size={13} /> {s.queue.cancelled}</>}
+            {j.state === "paused" && <><Icon name="pause" size={13} /> {s.queue.paused}</>}
           </span>
+          {file && j.state !== "done" && j.total ? (
+            <span>
+              {bytes(j.downloaded)} {s.queue.of} {bytes(j.total)}
+            </span>
+          ) : null}
           {j.error && <span className="job-err">{j.error}</span>}
         </div>
       )}
 
       <div className="job-act">
-        {j.state === "running" ? (
+        {j.state === "running" && file ? (
+          // Without ranges a pause can only start over, so it says "stop".
+          <button className="b-btn" onClick={() => onPause(j.id)}>
+            <Icon name={j.ranges ? "pause" : "stop"} />{" "}
+            <span className="btn-label">{j.ranges ? s.queue.pause : s.queue.cancel}</span>
+          </button>
+        ) : j.state === "running" ? (
           <button className="b-btn" onClick={() => onCancel(j.id)}>
             <Icon name="stop" /> <span className="btn-label">{s.queue.cancel}</span>
           </button>
         ) : (
           <>
+            {canResume && (
+              <button className="b-btn" onClick={() => onResume(j.id)}>
+                <Icon name="play" /> <span className="btn-label">{s.queue.resume}</span>
+              </button>
+            )}
             {j.path && (
               <button className="b-btn" onClick={() => onReveal(j.path!)}>
                 <Icon name="reveal" /> <span className="btn-label">{s.queue.reveal}</span>
@@ -223,7 +266,7 @@ const JobRow = memo(function JobRow({
                 about is the same as a feature that isn't there. */}
             <button
               className="b-btn"
-              title={j.path ? s.queue.removeWithFile : s.queue.remove}
+              title={canResume ? s.queue.removePart : j.path ? s.queue.removeWithFile : s.queue.remove}
               onClick={(e) => onRemove(j.id, (e.metaKey || e.ctrlKey) && !!j.path)}
             >
               <Icon name="remove" /> <span className="btn-label">{s.queue.remove}</span>
