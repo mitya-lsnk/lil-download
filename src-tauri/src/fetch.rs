@@ -83,7 +83,9 @@ fn request(url: &str, referer: Option<&str>) -> reqwest::RequestBuilder {
 
 fn net_err(e: reqwest::Error) -> String {
     if e.is_connect() {
-        "Не достучаться до сервера — проверь интернет.".into()
+        // Usually not the internet at all: a server that has had enough of
+        // one address stops taking its connections for a while.
+        "Сервер не пускает. Если интернет работает — сервер мог на время закрыть доступ (так бывает, если стучаться часто). Подожди немного и нажми «Продолжить».".into()
     } else if e.is_timeout() {
         "Сервер не отвечает.".into()
     } else {
@@ -499,7 +501,16 @@ impl Ctx {
         if self.ranges {
             rq = rq.header(header::RANGE, format!("bytes={pos}-{}", end - 1));
         }
-        let resp = rq.send().await.map_err(|e| Pull::Retry(net_err(e)))?;
+        // Refused or silent at connect time is also "fewer of you, please":
+        // the extra connections step aside and only one keeps trying, instead
+        // of every one of them knocking on a server that is turning us away.
+        let resp = rq.send().await.map_err(|e| {
+            if e.is_connect() || e.is_timeout() {
+                Pull::Crowded(net_err(e))
+            } else {
+                Pull::Retry(net_err(e))
+            }
+        })?;
         let st = resp.status();
         match st {
             StatusCode::TOO_MANY_REQUESTS | StatusCode::SERVICE_UNAVAILABLE => {

@@ -39,7 +39,14 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 # Deleting a downloaded file sends it to the Trash rather than unlinking it.
 # A misplaced click on a 4 GB download that took an hour should be undoable.
 trash = "5"
+# lildownload:// links — how the Safari helper and others hand links over.
+tauri-plugin-deep-link = "2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 tar = "0.4"
 xz2 = "0.1"
+
+[target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
+# There a lildownload:// link starts a second copy of the app; this hands the
+# link to the one already running instead. macOS does that by itself.
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

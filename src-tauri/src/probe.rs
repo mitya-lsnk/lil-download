@@ -175,6 +175,14 @@ pub fn humanize(stderr: &str) -> String {
         "Видео только для спонсоров канала. Нажми 🍪 и выбери браузер, где оформлено спонсорство."
     } else if low.contains("video unavailable") || low.contains("removed") {
         "Видео недоступно или удалено."
+    } else if low.contains("only works when logged-in")
+        || low.contains("login required")
+        || low.contains("account credentials")
+        || low.contains("--cookies-from-browser")
+    {
+        // yt-dlp's own advice here is a list of command-line flags. The app
+        // already has the answer behind one button.
+        "Сайт отдаёт это видео только тем, кто вошёл в аккаунт. Если аккаунт есть — нажми 🍪 и выбери браузер, где ты на этом сайте залогинен. Если нет — без входа это видео не скачать; иногда помогает обновить yt-dlp в настройках."
     } else if low.contains("geo") && low.contains("block") {
         "Видео заблокировано в этом регионе. Поможет прокси в настройках."
     } else if low.contains("could not copy") && low.contains("cookie") {
@@ -211,6 +219,8 @@ mod tests {
 
     #[test]
     fn known_failures_become_actionable_russian() {
+        let m = humanize("ERROR: [vimeo] 76979871: The web client only works when logged-in. Use --cookies, --cookies-from-browser, --username and --password, --netrc-cmd, or --netrc (vimeo) to provide account credentials.");
+        assert!(m.contains("вошёл в аккаунт"), "{m}");
         let m = humanize("ERROR: [youtube] abc: Private video. Sign in if you've been granted access");
         assert!(m.contains("приватное"), "{m}");
         let m = humanize("ERROR: unable to download video data: <urlopen error timed out>");

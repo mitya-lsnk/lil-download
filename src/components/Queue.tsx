@@ -31,6 +31,8 @@ export interface Job {
   name?: string;
   /** File rows: the server resumes, so pausing loses nothing. */
   ranges?: boolean;
+  /** File rows: the page the link came from, sent again on every resume. */
+  referer?: string | null;
   conns?: number;
   /** Was downloading when the app quit; continues on the next launch. */
   wasRunning?: boolean;

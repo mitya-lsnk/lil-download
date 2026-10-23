@@ -2,6 +2,7 @@ mod bins;
 mod cookies;
 mod dl;
 mod fetch;
+mod inbox;
 mod menu;
 mod probe;
 mod update;
@@ -285,12 +286,36 @@ fn reveal(path: String) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // First: a second copy started by a lildownload:// link must hand the link
+    // over and quit before it gets as far as opening a window of its own.
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {}));
+    builder
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Arc::new(dl::Jobs::default()))
         .manage(Arc::new(fetch::FileJobs::default()))
+        .manage(inbox::Pending::default())
+        .setup(|app| {
+            use tauri_plugin_deep_link::DeepLinkExt;
+            // macOS learns the scheme from the installed bundle; the other two
+            // need telling at run time.
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            let _ = app.deep_link().register_all();
+            if let Some(dir) = inbox::dir(app.handle()) {
+                let _ = std::fs::create_dir_all(dir);
+            }
+            // The link that started the app, then every one after it.
+            if let Ok(Some(urls)) = app.deep_link().get_current() {
+                inbox::on_links(app.handle(), &urls);
+            }
+            let handle = app.handle().clone();
+            app.deep_link().on_open_url(move |e| inbox::on_links(&handle, &e.urls()));
+            Ok(())
+        })
         .on_menu_event(menu::on_event)
         .invoke_handler(tauri::generate_handler![
             menu::lil_menu,
@@ -309,6 +334,7 @@ pub fn run() {
             start_file,
             pause_file,
             discard_file,
+            inbox::take_inbox,
             default_download_dir,
             reveal,
             trash_file,

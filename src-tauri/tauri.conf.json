@@ -56,5 +56,14 @@
         }
       }
     }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "lildownload"
+        ]
+      }
+    }
   }
 }

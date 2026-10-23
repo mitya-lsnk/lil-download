@@ -66,6 +66,16 @@ export interface FileStarted {
   ranges: boolean;
 }
 
+/** A link handed over from outside — the Safari helper, a lildownload:// link. */
+export interface InboxItem {
+  url: string;
+  referer: string | null;
+  /** "video" | "file" when the sender knew; null means find out. */
+  kind: string | null;
+  /** Came through the inbox folder, so it may go straight to the queue. */
+  trusted: boolean;
+}
+
 export interface UpdateInfo {
   current: string | null;
   latest: string | null;
@@ -139,6 +149,7 @@ export const api = {
     referer?: string | null;
   }) => call<FileStarted>("start_file", { req }),
   pauseFile: (id: number) => call<void>("pause_file", { id }),
+  takeInbox: () => call<InboxItem[]>("take_inbox"),
   discardFile: (dir: string, name: string) => call<void>("discard_file", { dir, name }),
   defaultDownloadDir: () => call<string | null>("default_download_dir"),
   reveal: (path: string) => call<void>("reveal", { path }),
@@ -181,6 +192,8 @@ export const on = {
     listen<[number, string]>("dl-status", (e) => cb(e.payload[0], e.payload[1])),
   done: (cb: (e: DoneEvent) => void): Promise<UnlistenFn> =>
     listen<DoneEvent>("dl-done", (e) => cb(e.payload)),
+  /** Something arrived in the mailbox; `takeInbox` fetches it. */
+  inbox: (cb: () => void): Promise<UnlistenFn> => listen("inbox", () => cb()),
   install: (cb: (e: InstallEvent) => void): Promise<UnlistenFn> =>
     listen<InstallEvent>("install-progress", (e) => cb(e.payload)),
 };

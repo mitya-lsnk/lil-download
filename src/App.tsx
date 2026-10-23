@@ -134,6 +134,7 @@ export default function App() {
   const [fileDestReason, setFileDestReason] = useState<"rule" | "last" | "default" | "os">("os");
   const [fileRememberFolder, setFileRememberFolder] = useState(false);
   const [fileRememberSource, setFileRememberSource] = useState(false);
+  const [fileReferer, setFileReferer] = useState<string | null>(null);
 
   // Read by the unload handler, which must see the newest values without being
   // re-registered on every keystroke and every progress tick.
@@ -239,7 +240,31 @@ export default function App() {
   useEffect(() => {
     handleLinkRef.current = handleLink;
     handleFileRef.current = handleFile;
+    takeInboxRef.current = takeInbox;
   });
+
+  // The mailbox is looked at when told something arrived, and on every focus in
+  // case a helper dropped a file without knocking.
+  const takeInboxRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!hasTauri()) return;
+    const unlisten = on.inbox(() => takeInboxRef.current());
+    const onFocus = () => takeInboxRef.current();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      unlisten.then((f) => f());
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+  // And once at start — after the Downloads folder is known, or a card would
+  // open with nowhere to save to. This is how the link that launched the app
+  // gets in.
+  const inboxStarted = useRef(false);
+  useEffect(() => {
+    if (!hasTauri() || inboxStarted.current || osDownloads === null) return;
+    inboxStarted.current = true;
+    takeInboxRef.current();
+  }, [osDownloads]);
 
   // Both writes are debounced, so a window closed a moment after the last
   // change would drop it. This is the other half of that trade.
@@ -583,7 +608,7 @@ export default function App() {
    * Send one file job to the downloader — a new one, or the same id again to
    * continue it. Rust finds the half-done piece by folder, name and link.
    */
-  function runFile(id: number, url: string, dir: string, name: string) {
+  function runFile(id: number, url: string, dir: string, name: string, referer?: string | null) {
     api
       .startFile({
         id,
@@ -592,6 +617,7 @@ export default function App() {
         name,
         threads: prefs.threads,
         limit_bps: ratePerSecond(prefs.limitRate, prefs.limitUnit),
+        referer: referer ?? null,
       })
       .then((st) =>
         setJobs((js) =>
@@ -605,7 +631,14 @@ export default function App() {
       );
   }
 
-  function queueFile(url: string, source: string, dir: string, name: string, size: number | null) {
+  function queueFile(
+    url: string,
+    source: string,
+    dir: string,
+    name: string,
+    size: number | null,
+    referer?: string | null,
+  ) {
     const id = nextId.current++;
     setJobs((js) => [
       {
@@ -627,11 +660,12 @@ export default function App() {
         error: null,
         dir,
         name,
+        referer: referer ?? null,
         conns: 0,
       },
       ...js,
     ]);
-    runFile(id, url, dir, name);
+    runFile(id, url, dir, name, referer);
   }
 
   const resumeFile = useCallback((id: number) => {
@@ -642,7 +676,7 @@ export default function App() {
         x.id === id ? { ...x, state: "running", error: null, wasRunning: false, status: s.queue.starting } : x,
       ),
     );
-    runFileRef.current(id, j.url, j.dir, j.name ?? "");
+    runFileRef.current(id, j.url, j.dir, j.name ?? "", j.referer);
   }, [s.queue.starting]);
   const runFileRef = useRef(runFile);
   runFileRef.current = runFile;
@@ -652,7 +686,11 @@ export default function App() {
   }, []);
 
   /** Paste → probe → card, or straight to the queue for several links at once. */
-  async function handleFile(raw: string, quick = false) {
+  async function handleFile(
+    raw: string,
+    quick = false,
+    from: { referer?: string | null; auto?: boolean } = {},
+  ) {
     // Pasted lists arrive with their line breaks squashed out of a one-line
     // field, so links are told apart by where the next one starts.
     const urls = raw
@@ -663,7 +701,7 @@ export default function App() {
       for (const u of urls) {
         const parsed = await api.parseLink(u).catch(() => null);
         const d = resolveDest(prefs, parsed?.source ?? null, osDownloads);
-        if (d.dir) queueFile(u, parsed?.source ?? "", d.dir, "", null);
+        if (d.dir) queueFile(u, parsed?.source ?? "", d.dir, "", null, from.referer);
       }
       setToast({ msg: s.files.queued(urls.length), kind: "info" });
       setFileDraft("");
@@ -681,9 +719,18 @@ export default function App() {
       const d = resolveDest(prefs, parsed.source, osDownloads);
       // The original, not the cleaned link: a file URL's query string is
       // usually its signature, and the cleaner strips "tracking" parameters.
-      const info = await api.probeFile(parsed.original);
+      const info = await api.probeFile(parsed.original, from.referer);
+      // Sent from outside without saying what it is, and it's a page: that is
+      // the Видео tab's job, so it goes there without asking.
+      if (info.page && from.auto) {
+        setFileDraft("");
+        setTab("video");
+        setDraft(parsed.original);
+        await handleLink(parsed.original, quick);
+        return;
+      }
       if (quick && d.dir && !info.page) {
-        queueFile(parsed.original, parsed.source, d.dir, info.name, info.size);
+        queueFile(parsed.original, parsed.source, d.dir, info.name, info.size, from.referer);
         setFileDraft("");
         return;
       }
@@ -694,6 +741,7 @@ export default function App() {
       setFileDestReason(d.reason);
       setFileRememberFolder(false);
       setFileRememberSource(false);
+      setFileReferer(from.referer ?? null);
     } catch (e) {
       setToast({ msg: String(e), kind: "error" });
     } finally {
@@ -705,7 +753,7 @@ export default function App() {
     if (!fileLink || !fileInfo || !fileDest) return;
     if (fileRememberFolder) set("lastDir", fileDest);
     if (fileRememberSource) setRule(fileLink.source, { dir: fileDest });
-    queueFile(fileLink.original, fileLink.source, fileDest, fileName.trim(), fileInfo.size);
+    queueFile(fileLink.original, fileLink.source, fileDest, fileName.trim(), fileInfo.size, fileReferer);
     setFileInfo(null);
     setFileLink(null);
     setFileDraft("");
@@ -716,6 +764,29 @@ export default function App() {
     if (typeof picked === "string") {
       setFileDest(picked);
       setFileDestReason("last");
+    }
+  }
+
+  /**
+   * Links handed over from outside (PLAN §13, stage 2). One link opens a card
+   * in the right tab, as if pasted. Several at once — only ever from the inbox
+   * folder, never from a lildownload:// link a web page could open — go
+   * straight to the queue with the remembered settings.
+   */
+  async function takeInbox() {
+    const items = await api.takeInbox().catch(() => []);
+    if (items.length === 0) return;
+    const batch = items.length > 1 && items.every((i) => i.trusted);
+    for (const it of batch ? items : items.slice(-1)) {
+      if (it.kind === "video") {
+        setTab("video");
+        setDraft(it.url);
+        await handleLink(it.url, batch);
+      } else {
+        setTab("files");
+        setFileDraft(it.url);
+        await handleFile(it.url, batch, { referer: it.referer, auto: it.kind !== "file" });
+      }
     }
   }
 
