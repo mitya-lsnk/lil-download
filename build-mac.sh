@@ -29,12 +29,16 @@ npm run tauri build -- --bundles app
 # Копия в папке сборки не должна перехватывать ссылки lildownload://.
 $LSR -u "$BUILT" 2>/dev/null || true
 ditto "$BUILT" "/Applications/$APP.app.new"
-# Старая версия уходит в корзину, а не стирается: если новая не заведётся,
-# есть куда вернуться. Перед этим её нужно разрегистрировать — иначе в поиске
-# останется призрак.
+# Старая версия уходит в target.noindex/old, а НЕ в корзину: Pearcleaner,
+# заметив .app в корзине, сам выносит туда настройки, данные и даже симлинк на
+# папку проекта (так пропали данные у lil art и lil develop). В .noindex её не
+# видит и поиск. Хранится одна предыдущая — вернуться, если новая не заведётся.
+# Перед переносом разрегистрируем, иначе в поиске останется призрак.
 if [[ -e "/Applications/$APP.app" ]]; then
   $LSR -u "/Applications/$APP.app" 2>/dev/null || true
-  mv "/Applications/$APP.app" "$HOME/.Trash/$APP $(date +%Y-%m-%d\ %H.%M.%S).app"
+  rm -rf "$CARGO_TARGET_DIR/old"
+  mkdir -p "$CARGO_TARGET_DIR/old"
+  mv "/Applications/$APP.app" "$CARGO_TARGET_DIR/old/$APP.app"
 fi
 mv "/Applications/$APP.app.new" "/Applications/$APP.app"
 $LSR -f "/Applications/$APP.app"
