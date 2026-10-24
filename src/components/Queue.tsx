@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { useStrings } from "../lib/i18n";
 import { bytes, eta, speed } from "../lib/format";
@@ -36,6 +37,26 @@ export interface Job {
   conns?: number;
   /** Was downloading when the app quit; continues on the next launch. */
   wasRunning?: boolean;
+}
+
+/**
+ * The link a row can be opened from. Only http(s) goes to the OS handler: the
+ * address can arrive from outside (a `lildownload://` link, the Safari helper,
+ * old history), and `openUrl` would hand a `file:` or custom-scheme address to
+ * whatever app claims it. For a file, the page it came from beats the direct
+ * link, which is usually a signed one that has long since expired.
+ */
+function originalLink(j: Job): string | null {
+  for (const raw of [j.referer, j.url]) {
+    if (!raw) continue;
+    try {
+      const u = new URL(raw);
+      if (u.protocol === "https:" || u.protocol === "http:") return u.href;
+    } catch {
+      /* not a URL; try the next one */
+    }
+  }
+  return null;
 }
 
 export function Queue({
@@ -176,6 +197,7 @@ const JobRow = memo(function JobRow({
   const pct = j.total ? Math.min(100, (j.downloaded / j.total) * 100) : null;
   // Nothing has arrived yet: yt-dlp is still talking to the site.
   const warmup = j.state === "running" && j.downloaded === 0;
+  const link = originalLink(j);
 
   return (
     <div
@@ -189,7 +211,16 @@ const JobRow = memo(function JobRow({
           <span className="job-thumb job-thumb--none" />
         )}
         <span className="job-title">{j.title}</span>
-        <span className="job-source b-mono">{j.source}</span>
+        {link && (
+          <button
+            type="button"
+            className="job-source job-link b-mono"
+            title={link}
+            onClick={() => openUrl(link)}
+          >
+            {s.queue.original}
+          </button>
+        )}
       </div>
 
       {j.state === "running" && (

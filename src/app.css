@@ -244,9 +244,13 @@
   gap: 10px;
   align-items: baseline;
 }
+.job {
+  min-width: 0;
+}
 .job-title {
   font-weight: 700;
   font-size: 13px;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -255,6 +259,21 @@
   font-size: 10px;
   color: var(--muted);
   margin-left: auto;
+  flex: none;
+}
+/* The address itself is too long to show — a signed storage URL runs to a
+   hundred characters — so the row carries a short link and the full address
+   sits in its tooltip. */
+.job-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.job-link:hover {
+  color: var(--ink);
 }
 .job-bar {
   height: 10px;
@@ -295,6 +314,7 @@
 .job-status {
   font-size: 10px;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 .job-act {
   display: flex;
@@ -1124,10 +1144,14 @@
 .queue--bento .job-title {
   white-space: normal;
   overflow: visible;
+  /* One long unbroken name (a model file, a hashed download) has no space to
+     wrap at; without this it runs straight through the tile's edge. */
+  overflow-wrap: anywhere;
   line-height: 1.25;
 }
 .queue--bento .job-source {
   margin-left: 0;
+  align-self: flex-start;
 }
 .queue--bento .job-act {
   flex-wrap: wrap;

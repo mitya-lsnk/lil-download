@@ -185,6 +185,7 @@ export const RU = {
     resume: "Продолжить",
     paused: "На паузе",
     removePart: "Убрать из списка, недокачанный кусок — в корзину",
+    original: "оригинал",
   },
   update: {
     stale: "yt-dlp устарел",
@@ -461,6 +462,7 @@ export const EN: Dict = {
     resume: "Resume",
     paused: "Paused",
     removePart: "Remove from the list, the unfinished part goes to the Trash",
+    original: "original",
   },
   update: {
     stale: "yt-dlp is out of date",
