@@ -28,14 +28,14 @@ fi
 
 LOG=$(mktemp)
 if ! xcodebuild -project "$APP_NAME/$APP_NAME.xcodeproj" -scheme "$APP_NAME" -configuration Release \
-     -derivedDataPath build build "${SIGN[@]}" >"$LOG" 2>&1; then
+     -derivedDataPath build.noindex build "${SIGN[@]}" >"$LOG" 2>&1; then
   grep -E "error:" "$LOG" | head -20
   echo "ОШИБКА: сборка не прошла (полный лог: $LOG)"
   exit 1
 fi
 echo "Сборка прошла"
 
-BUILT="build/Build/Products/Release/$APP_NAME.app"
+BUILT="build.noindex/Build/Products/Release/$APP_NAME.app"
 RES="$BUILT/Contents/PlugIns/$APP_NAME Extension.appex/Contents/Resources"
 for f in ../extension/*; do
   [[ -e "$RES/${f:t}" ]] || { echo "ОШИБКА: ${f:t} не попал в приложение — добавь его в проект Xcode"; exit 1; }
@@ -47,7 +47,7 @@ mkdir -p "$HOME/Applications"
 # Переносим, а не копируем: вторая копия в папке сборки даёт Safari второе расширение.
 $LSR -u "$PWD/$BUILT" 2>/dev/null || true
 mv "$BUILT" "$DEST"
-for p in build/Build/Products/*/"$APP_NAME.app"(N) build/Build/Products/*/"$APP_NAME Extension.appex"(N); do
+for p in build.noindex/Build/Products/*/"$APP_NAME.app"(N) build.noindex/Build/Products/*/"$APP_NAME Extension.appex"(N); do
   [[ -e "$p" ]] || continue
   $LSR -u "$PWD/$p" 2>/dev/null || true
   rm -rf "$p"
