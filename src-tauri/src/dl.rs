@@ -36,12 +36,17 @@ fn selector(preset: &str) -> (&'static str, Option<&'static str>) {
     match preset {
         // Compatible: H.264 up to 1080p with AAC. Opens in every NLE without
         // transcoding, which is the whole reason this preset exists.
+        //
+        // `<=?`, not `<=`, in every height filter: a format whose height the
+        // site does not state fails a plain `<=` and drops out. Instagram's
+        // ready-made mp4s are exactly that, so the preset found nothing and the
+        // download died with "Requested format is not available".
         "compatible" => (
-            "bv*[vcodec^=avc1][height<=1080]+ba[ext=m4a]/b[ext=mp4][height<=1080]/b[height<=1080]",
+            "bv*[vcodec^=avc1][height<=?1080]+ba[ext=m4a]/b[ext=mp4][height<=?1080]/b[height<=?1080]",
             Some("mp4"),
         ),
         "audio" => ("ba/b", None),
-        "compact" => ("bv*[height<=720]+ba/b[height<=720]/b", Some("mp4")),
+        "compact" => ("bv*[height<=?720]+ba/b[height<=?720]/b", Some("mp4")),
         // Максимум is the default: take the best of each and remux, never
         // re-encode. Re-encoding "the best" would throw away the point of it.
         _ => ("bv*+ba/b", None),
@@ -232,7 +237,7 @@ fn build_args(req: &DownloadRequest, out_template: &str, ffmpeg_dir: Option<&Pat
     // one by hand produces selectors that look right and silently match nothing.
     let format = req.format_override.clone().unwrap_or_else(|| match req.max_height {
         Some(h) if req.preset != "audio" => {
-            format!("bv*[height<={h}]+ba/b[height<={h}]/b")
+            format!("bv*[height<=?{h}]+ba/b[height<=?{h}]/b")
         }
         _ => fmt.to_string(),
     });
@@ -573,9 +578,23 @@ mod tests {
         let mut r = req("max");
         r.max_height = Some(1080);
         let a = build_args(&r, "/tmp/x.%(ext)s", None).join(" ");
-        assert!(a.contains("bv*[height<=1080]+ba"), "{a}");
+        assert!(a.contains("bv*[height<=?1080]+ba"), "{a}");
         // The compound preset string must be gone, not edited.
         assert!(!a.contains("bv*+ba/b "), "{a}");
+    }
+
+    /// A plain `height<=N` silently drops every format whose height the site does
+    /// not report — Instagram's progressive mp4s — and leaves the preset with
+    /// nothing to pick. `<=?` lets unknown heights through.
+    #[test]
+    fn no_height_filter_excludes_formats_of_unknown_height() {
+        for preset in ["compatible", "compact", "max"] {
+            let mut r = req(preset);
+            r.max_height = (preset == "max").then_some(1080);
+            let a = build_args(&r, "/tmp/x.%(ext)s", None).join(" ");
+            assert!(a.contains("height<=?"), "{preset}: {a}");
+            assert!(!a.contains("height<=1") && !a.contains("height<=7"), "{preset}: {a}");
+        }
     }
 
     #[test]
@@ -829,7 +848,7 @@ mod tests {
     fn compatible_preset_asks_for_h264_and_caps_at_1080() {
         let a = build_args(&req("compatible"), "/tmp/x.%(ext)s", None).join(" ");
         assert!(a.contains("avc1"), "{a}");
-        assert!(a.contains("height<=1080"), "{a}");
+        assert!(a.contains("height<=?1080"), "{a}");
         assert!(a.contains("--merge-output-format mp4"), "{a}");
     }
 

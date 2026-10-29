@@ -165,6 +165,8 @@ pub fn humanize(stderr: &str) -> String {
         || (low.contains("error:") && low.contains("requires an argument"))
     {
         "Похоже, в своих флагах последний флаг остался без значения — yt-dlp принял за это значение то, что шло следом. Проверь поле со своими флагами."
+    } else if low.contains("requested format is not available") {
+        "У этой ссылки нет формата под выбранный пресет. Попробуй «Максимум» или «Свой» — там берётся то, что есть."
     } else if low.contains("403") && low.contains("forbidden") {
         "YouTube отдал 403 — почти наверняка yt-dlp устарел. Обнови его в настройках."
     } else if low.contains("sign in to confirm") || low.contains("bot") {
@@ -231,6 +233,9 @@ mod tests {
         assert!(m.contains("вошёл в аккаунт"), "{m}");
         let m = humanize("ERROR: [youtube] abc: Private video. Sign in if you've been granted access");
         assert!(m.contains("приватное"), "{m}");
+        let m = humanize("ERROR: [Instagram] De2J6ooPdHZ: Requested format is not available. Use --list-formats for a list of available formats");
+        assert!(m.contains("Максимум"), "{m}");
+        assert!(!m.contains("--list-formats"), "{m}");
         let m = humanize("ERROR: unable to download video data: <urlopen error timed out>");
         assert!(m.contains("сет"), "{m}");
     }
