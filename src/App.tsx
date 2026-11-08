@@ -1016,6 +1016,8 @@ export default function App() {
           // this toggle simply never got the same treatment.
           view={prefs.queueView}
           onView={(v) => set("queueView", v)}
+          awake={!keepAwake ? "off" : downloading ? "holding" : "ready"}
+          onAwake={() => set("keepAwake", !keepAwake)}
           onAgain={tab === "files" ? againFile : againWith}
           onCopy={copyLink}
           // Running jobs survive: clearing the list must not orphan a download

@@ -1111,6 +1111,12 @@
   padding: 0;
   justify-content: center;
 }
+.queue-awake {
+  margin-right: 6px;
+}
+.queue-awake.off {
+  opacity: 0.55;
+}
 .queue-views .b-btn.on {
   background: var(--ink);
   color: var(--surface);

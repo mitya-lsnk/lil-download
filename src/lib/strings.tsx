@@ -187,6 +187,11 @@ export const RU = {
     resume: "Продолжить",
     paused: "На паузе",
     removePart: "Убрать из списка, недокачанный кусок — в корзину",
+    awake: {
+      holding: "Мак не уснёт, пока идёт загрузка. Нажми, чтобы выключить",
+      ready: "Сейчас ничего не качается. Во время загрузки Мак не уснёт. Нажми, чтобы выключить",
+      off: "Мак может уснуть во время загрузки. Нажми, чтобы включить",
+    },
     original: "оригинал",
   },
   update: {
@@ -466,6 +471,11 @@ export const EN: Dict = {
     resume: "Resume",
     paused: "Paused",
     removePart: "Remove from the list, the unfinished part goes to the Trash",
+    awake: {
+      holding: "The Mac will not sleep while this downloads. Click to turn off",
+      ready: "Nothing is downloading right now. The Mac will not sleep during a download. Click to turn off",
+      off: "The Mac may sleep during a download. Click to turn on",
+    },
     original: "original",
   },
   update: {

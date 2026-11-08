@@ -7,6 +7,9 @@ import { Icon } from "./Icon";
 
 export type QueueView = "list" | "bento";
 
+/** Whether the Mac is being kept awake: off by choice, armed, or held right now. */
+export type AwakeState = "off" | "ready" | "holding";
+
 export interface Job {
   id: number;
   /** The link this came from, so it can be run again without hunting for it. */
@@ -63,6 +66,8 @@ export function Queue({
   jobs,
   view,
   onView,
+  awake,
+  onAwake,
   onCancel,
   onReveal,
   onRemove,
@@ -75,6 +80,8 @@ export function Queue({
   jobs: Job[];
   view: QueueView;
   onView: (v: QueueView) => void;
+  awake: AwakeState;
+  onAwake: () => void;
   onCancel: (id: number) => void;
   onReveal: (path: string) => void;
   /** `withFile` also sends the downloaded file to the Trash. */
@@ -102,6 +109,16 @@ export function Queue({
     <div className="queue-head">
       <span className="b-cap">{s.queue.title}</span>
       <div className="queue-views">
+        {/* A sun while the Mac is kept awake, a moon when it is free to sleep:
+            the state has to be readable from across the room at 3 a.m. */}
+        <button
+          className={`b-btn queue-awake ${awake === "holding" ? "on" : ""} ${awake === "off" ? "off" : ""}`}
+          onClick={onAwake}
+          title={s.queue.awake[awake]}
+          aria-pressed={awake !== "off"}
+        >
+          <Icon name={awake === "off" ? "moon" : "sun"} size={14} />
+        </button>
         {jobs.some((j) => j.state !== "running") && (
           <button className="b-btn queue-clear" onClick={onClear} title={s.queue.clear}>
             <Icon name="clear" size={14} />
