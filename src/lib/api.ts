@@ -153,6 +153,7 @@ export const api = {
   discardFile: (dir: string, name: string) => call<void>("discard_file", { dir, name }),
   defaultDownloadDir: () => call<string | null>("default_download_dir"),
   reveal: (path: string) => call<void>("reveal", { path }),
+  keepAwake: (on: boolean) => call<void>("keep_awake", { on }),
   trashFile: (path: string) => call<void>("trash_file", { path }),
 };
 

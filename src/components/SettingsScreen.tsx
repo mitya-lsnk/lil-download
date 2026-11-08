@@ -154,6 +154,18 @@ export function SettingsScreen({
                 <span className="settings-hint">{s.settings.threadsHint}</span>
               </label>
 
+              <div className="settings-field">
+                <label className="opt opt-check">
+                  <input
+                    type="checkbox"
+                    checked={prefs.keepAwake}
+                    onChange={(e) => onSet("keepAwake", e.target.checked)}
+                  />
+                  <span className="opt-label">{s.settings.keepAwake}</span>
+                </label>
+                <span className="settings-hint">{s.settings.keepAwakeHint}</span>
+              </div>
+
               <label className="settings-field">
                 <span>{s.settings.extraArgs}</span>
                 <FlagsInput

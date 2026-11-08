@@ -127,6 +127,8 @@ export interface Prefs {
   tab: "video" | "files";
   /** Connections per plain file download (PLAN §13). */
   threads: number;
+  /** Hold the Mac awake while something is downloading. */
+  keepAwake: boolean;
 }
 
 export const DEFAULTS: Prefs = {
@@ -154,6 +156,7 @@ export const DEFAULTS: Prefs = {
   queueView: "list",
   tab: "video",
   threads: 4,
+  keepAwake: true,
 };
 
 const KEY = "lildownload.prefs";

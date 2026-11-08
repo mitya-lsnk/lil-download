@@ -113,6 +113,13 @@ export default function App() {
   // Restored rather than started empty: the Full Disk Access flow *requires* a
   // restart, so the retry the user came back for must still be on screen.
   const [jobs, setJobs] = useState<Job[]>(readHistory);
+  // Awake only while something is actually running, and only if asked to be:
+  // a lock that outlives the download is a Mac that never sleeps.
+  const downloading = jobs.some((j) => j.state === "running");
+  const keepAwake = prefs.keepAwake;
+  useEffect(() => {
+    void api.keepAwake(keepAwake && downloading).catch(() => {});
+  }, [keepAwake, downloading]);
   // Ids continue past whatever was restored, so a new job can't collide with a
   // remembered one. Seeded from the state above rather than by parsing storage
   // a second time.

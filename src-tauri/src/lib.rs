@@ -1,3 +1,4 @@
+mod awake;
 mod bins;
 mod cookies;
 mod dl;
@@ -338,6 +339,7 @@ pub fn run() {
             default_download_dir,
             reveal,
             trash_file,
+            awake::keep_awake,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
