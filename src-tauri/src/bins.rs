@@ -138,6 +138,10 @@ pub struct ToolStatus {
     pub cmd: Option<Cmd>,
     /// Measured cold start, milliseconds. The honest answer to "why is it slow".
     pub startup_ms: Option<u64>,
+    /// Slow standalone yt-dlp on a machine that has a Python able to run the
+    /// light zipapp — i.e. "Reinstall" would actually fix it. Without this the
+    /// UI promised a 3 MB variant to people who have no Python to run it.
+    pub lighter_available: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -432,6 +436,10 @@ pub fn locate(app: &AppHandle, tool: Tool, custom: Option<&str>) -> ToolStatus {
                 runner: Some(runner.into()),
                 cmd: Some(cmd),
                 startup_ms: Some(ms),
+                lighter_available: tool == Tool::Ytdlp
+                    && runner == "native"
+                    && ms > 2000
+                    && find_python().is_some(),
             };
         }
     }
@@ -445,6 +453,7 @@ pub fn locate(app: &AppHandle, tool: Tool, custom: Option<&str>) -> ToolStatus {
         runner: None,
         cmd: None,
         startup_ms: None,
+        lighter_available: false,
     }
 }
 
@@ -481,11 +490,16 @@ async fn download_url(tool: Tool, ch: Channel) -> Result<String, String> {
         Tool::YtdlpZipapp => asset("yt-dlp"),
         Tool::Ffmpeg => {
             if cfg!(target_os = "macos") {
-                // evermeet publish both streams behind two stable addresses.
-                match ch {
-                    Channel::Stable => "https://evermeet.cx/ffmpeg/getrelease/zip".into(),
-                    Channel::Nightly => "https://evermeet.cx/ffmpeg/get/zip".into(),
-                }
+                // martin-riedl.de: static builds for both chips, behind stable
+                // `redirect/latest` addresses (a release and a snapshot stream).
+                // Replaced evermeet.cx, which started answering 410 Gone and made
+                // a clean install impossible; it also only ever had Intel builds.
+                let chip = if cfg!(target_arch = "aarch64") { "arm64" } else { "amd64" };
+                let stream = match ch {
+                    Channel::Stable => "release",
+                    Channel::Nightly => "snapshot",
+                };
+                format!("https://ffmpeg.martin-riedl.de/redirect/latest/macos/{chip}/{stream}/ffmpeg.zip")
             } else if cfg!(windows) {
                 match ch {
                     Channel::Nightly => "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip".into(),
@@ -754,6 +768,21 @@ pub async fn install(app: &AppHandle, tool: Tool, ch: Channel) -> Result<ToolSta
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// evermeet.cx, the old source, now answers 410 Gone: a clean install of
+    /// ffmpeg on a Mac failed for everybody. The replacement has to name the
+    /// chip we are running on, and a zip the extractor can read.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn ffmpeg_on_a_mac_comes_from_a_live_source_for_this_chip() {
+        for ch in [Channel::Stable, Channel::Nightly] {
+            let url = tauri::async_runtime::block_on(download_url(Tool::Ffmpeg, ch)).unwrap();
+            assert!(!url.contains("evermeet"), "{url}");
+            assert!(url.ends_with("/ffmpeg.zip"), "{url}");
+            let chip = if cfg!(target_arch = "aarch64") { "/arm64/" } else { "/amd64/" };
+            assert!(url.contains(chip), "{url}");
+        }
+    }
 
     /// Runs only where the tools are actually installed. The bug this guards
     /// against — a working binary reported as missing because the version flag

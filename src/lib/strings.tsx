@@ -215,6 +215,7 @@ export const RU = {
     runnerNative: "отдельный бинарь",
     startup: "запуск",
     slowHint: "Запускается очень долго. Это macOS проверяет ненотаризованный 37-мегабайтный бинарь при каждом вызове. Нажми «Переустановить» — поставим 3-мегабайтный вариант, он стартует за доли секунды.",
+    slowHintNoPython: "Запускается долго: macOS проверяет большой ненотаризованный файл при каждом вызове. Чтобы ускорить, поставь Python 3.10 или новее (в терминале: brew install python) и нажми «Переустановить».",
   },
   fmt: {
     container: "Формат файла",
@@ -496,6 +497,7 @@ export const EN: Dict = {
     runnerPython: "light build, via python",
     runnerNative: "standalone binary",
     startup: "startup",
+    slowHintNoPython: "Slow to start: macOS re-checks a large unnotarised file on every call. To speed it up, install Python 3.10 or newer (in Terminal: brew install python) and hit Reinstall.",
     slowHint: "Very slow to start. That's macOS re-checking an unnotarised 37 MB binary on every call. Hit Reinstall and we'll fetch the 3 MB build, which starts in a fraction of a second.",
   },
   fmt: {

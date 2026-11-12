@@ -49,18 +49,24 @@ export function ToolsPanel({
   onPickPath: (tool: "ytdlp" | "ffmpeg", path: string) => void;
 }) {
   const s = useStrings();
-  const [busy, setBusy] = useState<string | null>(null);
-  const [prog, setProg] = useState<{ done: number; total: number | null; stage: string } | null>(
-    null,
-  );
+  // Per tool, not one slot for both: yt-dlp and ffmpeg install independently,
+  // and a single "busy" key made the second click steal the first one's spinner,
+  // progress and result.
+  type Key = "ytdlp" | "ffmpeg";
+  const [busy, setBusy] = useState<Partial<Record<Key, boolean>>>({});
+  const [progs, setProgs] = useState<
+    Record<string, { done: number; total: number | null; stage: string }>
+  >({});
   const [err, setErr] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
+  const [oks, setOks] = useState<Partial<Record<Key, string>>>({});
   const [upd, setUpd] = useState<UpdateInfo | null>(null);
   const [checking, setChecking] = useState(false);
   const [checkedAt, setCheckedAt] = useState<Date | null>(null);
 
   useEffect(() => {
-    const un = on.install((e) => setProg({ done: e.done, total: e.total, stage: e.stage }));
+    const un = on.install((e) =>
+      setProgs((p) => ({ ...p, [e.tool]: { done: e.done, total: e.total, stage: e.stage } })),
+    );
     return () => {
       un.then((f) => f());
     };
@@ -100,25 +106,26 @@ export function ToolsPanel({
     check();
   }, [check]);
 
-  async function install(tool: "ytdlp" | "ffmpeg") {
+  async function install(tool: Key) {
+    const label = tool === "ytdlp" ? "yt-dlp" : "ffmpeg";
     setErr(null);
-    setOk(null);
-    setBusy(tool);
-    setProg(null);
+    setOks((o) => ({ ...o, [tool]: undefined }));
+    setBusy((b) => ({ ...b, [tool]: true }));
+    setProgs(({ [label]: _gone, ...rest }) => rest);
     try {
       const st = await api.installTool(tool, channels?.[tool] ?? "stable");
       // The remembered verdict describes the copy we just replaced.
       forgetUpdate();
       // Name the version: "готово" alone leaves you wondering whether anything
       // actually changed.
-      setOk(`${st.tool} ${st.version ?? ""}`.trim());
+      setOks((o) => ({ ...o, [tool]: `${st.tool} ${st.version ?? ""}`.trim() }));
       onRefresh();
       if (tool === "ytdlp") await check(true);
     } catch (e) {
       setErr(String(e));
     } finally {
-      setBusy(null);
-      setProg(null);
+      setBusy((b) => ({ ...b, [tool]: false }));
+      setProgs(({ [label]: _gone, ...rest }) => rest);
     }
   }
 
@@ -168,7 +175,8 @@ export function ToolsPanel({
           ] as const
         ).map(([key, label, what]) => {
           const st = tools.find((t) => t.tool === label);
-          const running = busy === key;
+          const running = !!busy[key];
+          const prog = progs[label];
           const checked = key === "ytdlp";
           const stale = checked && (upd?.stale ?? false);
 
@@ -205,7 +213,11 @@ export function ToolsPanel({
                 {/* The number alone doesn't tell anyone what to do about it, so
                     this one line stays out in the open. Everything else about
                     the install is true but inert — it goes under the hover. */}
-                {isSlow(st) && <span className="setup-slow">{s.update.slowHint}</span>}
+                {isSlow(st) && (
+                  <span className="setup-slow">
+                    {st?.lighter_available ? s.update.slowHint : s.update.slowHintNoPython}
+                  </span>
+                )}
                 {st?.found && (
                   <span className="setup-more" tabIndex={0}>
                     <Icon name="chevron" size={11} /> {s.settings.details}
@@ -269,11 +281,11 @@ export function ToolsPanel({
         })}
       </div>
 
-      {ok && (
-        <div className="setup-ok b-mono">
+      {Object.values(oks).filter(Boolean).map((ok) => (
+        <div className="setup-ok b-mono" key={ok}>
           <Icon name="ok" size={12} /> {s.update.updated} {ok}
         </div>
-      )}
+      ))}
       {err && <div className="b-error">{err}</div>}
     </>
   );

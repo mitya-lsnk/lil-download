@@ -12,6 +12,8 @@ export interface ToolStatus {
   origin: "managed" | "custom" | "system" | null;
   runner: "native" | "python" | null;
   startup_ms: number | null;
+  /** Reinstalling would swap a slow standalone yt-dlp for the light zipapp. */
+  lighter_available: boolean;
 }
 
 export interface ParsedLink {
