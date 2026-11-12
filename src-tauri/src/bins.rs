@@ -515,6 +515,22 @@ async fn download_url(tool: Tool, ch: Channel) -> Result<String, String> {
     })
 }
 
+/// Where to look when the main ffmpeg server is down: plain binaries on GitHub,
+/// whose CDN does not mind the traffic. Older than the main source, which is the
+/// price of a fallback that is still there next year. macOS only so far.
+fn fallback_url(tool: Tool) -> Option<String> {
+    if tool != Tool::Ffmpeg || !cfg!(target_os = "macos") {
+        return None;
+    }
+    let chip = if cfg!(target_arch = "aarch64") { "arm64" } else { "x64" };
+    Some(format!(
+        "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-{chip}"
+    ))
+}
+
+const HOMEBREW_HINT: &str =
+    "Можно поставить ffmpeg самому: в терминале brew install ffmpeg — приложение найдёт его без подсказок.";
+
 /// The newest versioned win64 GPL zip in BtbN's latest release.
 ///
 /// Picks by asset name rather than trusting order: the release carries several
@@ -703,10 +719,24 @@ pub async fn install(app: &AppHandle, tool: Tool, ch: Channel) -> Result<ToolSta
     };
 
     let final_path = dir.join(tool.exe_name());
-    let url = download_url(tool, ch).await?;
+    let mut url = download_url(tool, ch).await?;
     let tmp = dir.join(format!("{}.part", tool.exe_name()));
 
-    let sha = fetch_to_file(app, tool, &url, &tmp).await?;
+    // A volunteer's server can fall over under the load of every fresh install —
+    // evermeet.cx did, for good. Try the second source before giving up, and when
+    // both fail say what to do instead of showing a bare status code.
+    let sha = match fetch_to_file(app, tool, &url, &tmp).await {
+        Ok(sha) => sha,
+        Err(first) => match fallback_url(tool) {
+            Some(alt) => {
+                url = alt;
+                fetch_to_file(app, tool, &url, &tmp).await.map_err(|second| {
+                    format!("{first}. Запасной источник тоже не ответил: {second}. {HOMEBREW_HINT}")
+                })?
+            }
+            None => return Err(first),
+        },
+    };
 
     let staged = dir.join(format!("{}.new", tool.exe_name()));
     if url.ends_with(".zip") || url.ends_with("/zip") {
@@ -772,6 +802,17 @@ mod tests {
     /// evermeet.cx, the old source, now answers 410 Gone: a clean install of
     /// ffmpeg on a Mac failed for everybody. The replacement has to name the
     /// chip we are running on, and a zip the extractor can read.
+    #[test]
+    fn only_ffmpeg_on_a_mac_has_a_fallback_and_it_names_the_chip() {
+        assert!(fallback_url(Tool::Ytdlp).is_none());
+        if cfg!(target_os = "macos") {
+            let url = fallback_url(Tool::Ffmpeg).unwrap();
+            assert!(url.starts_with("https://github.com/"), "{url}");
+            let chip = if cfg!(target_arch = "aarch64") { "arm64" } else { "x64" };
+            assert!(url.ends_with(&format!("ffmpeg-darwin-{chip}")), "{url}");
+        }
+    }
+
     #[cfg(target_os = "macos")]
     #[test]
     fn ffmpeg_on_a_mac_comes_from_a_live_source_for_this_chip() {
